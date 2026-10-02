@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from caseboard.clio.changes import PdfList
 from caseboard.clio.documents import RemotePdf, diff_pdfs, stored_pdfs
 from caseboard.domain.enums import DocType
 from caseboard.domain.models import ModelEvidence, ModelEvent, ModelFacet, ModelSegment, PdfExtract, SourceFile
@@ -92,3 +93,35 @@ def test_remember_drops_only_that_file(tmp_path: Path) -> None:
     facets = store.list_type(DocType.facet)
     assert facets
     assert all(cite["document"] == "other.pdf" for row in facets for cite in row["evidence"])
+
+
+def test_sync_lists_pdfs_without_fetching_them(tmp_path: Path) -> None:
+    store = DocumentStore(tmp_path / "case.sqlite")
+
+    class FakeClient:
+        def matter_id(self) -> str:
+            return "1811189963"
+
+        def list_documents(self, matter_id: str) -> list[dict]:
+            return [
+                {
+                    "id": 9,
+                    "latest_document_version": {
+                        "id": 3,
+                        "filename": "letter.pdf",
+                        "content_type": "application/pdf",
+                        "fully_uploaded": True,
+                    },
+                }
+            ]
+
+        def file_url(self, document_id: str) -> str:
+            raise AssertionError("listing must not fetch a file")
+
+    corpus = CorpusExtractor(store, None, tmp_path, tmp_path)
+    new, removed, unchanged, updated = PdfList(FakeClient(), store, corpus).record(lambda _message: None)
+    assert (new, removed, unchanged, updated) == (1, 0, 0, 0)
+    row = store.list_type(DocType.source)[0]
+    assert row["filename"] == "letter.pdf"
+    assert row["clio_document_id"] == "9"
+    assert row["clio_version_id"] == ""

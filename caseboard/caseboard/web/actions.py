@@ -1,6 +1,6 @@
 """Buttons: extract changed Clio PDFs, sync communications, and rerun validations."""
 
-from caseboard.clio.changes import PdfChanges
+from caseboard.clio.changes import PdfChanges, PdfList
 from caseboard.clio.client import ClioClient
 from caseboard.clio.sync import ClioSync
 from caseboard.config import Settings
@@ -39,12 +39,11 @@ class Actions:
     def sync(self) -> None:
         try:
             communications = ClioSync(self._store, self._clio).run(self._job.update)
-            changed, removed, unchanged, problems = self._pdf_changes()
+            new, removed, unchanged, updated = self._note_pdfs()
             count = ValidationRunner(self._store).run()
             self._job.finish(
                 f"Stored {communications} records. "
-                + _pdf_message(changed, removed, unchanged, count),
-                error="; ".join(problems),
+                + _list_message(new, removed, unchanged, updated, count)
             )
         except Exception as exc:
             self._job.finish("Clio sync failed", error=str(exc))
@@ -53,6 +52,15 @@ class Actions:
         if self._job.snapshot()["running"]:
             raise CaseboardError("Wait for the current job to finish")
         return ValidationRunner(self._store).run()
+
+    def _note_pdfs(self) -> tuple[int, int, int, int]:
+        corpus = CorpusExtractor(
+            self._store,
+            None,
+            self._settings.docs_dir,
+            self._settings.compress_dir,
+        )
+        return PdfList(self._clio, self._store, corpus).record(self._job.update)
 
     def _pdf_changes(self) -> tuple[int, int, int, list[str]]:
         extractor = GeminiExtractor(
@@ -66,6 +74,15 @@ class Actions:
             self._settings.compress_dir,
         )
         return PdfChanges(self._clio, self._store, extractor, corpus).run(self._job.update)
+
+
+def _list_message(new: int, removed: int, unchanged: int, updated: int, findings: int) -> str:
+    if new == 0 and removed == 0 and updated == 0:
+        return f"PDF list unchanged ({unchanged} saved). {findings} findings."
+    return (
+        f"{new} new PDFs, {updated} updated, {removed} removed, "
+        f"{unchanged} unchanged. {findings} findings."
+    )
 
 
 def _pdf_message(changed: int, removed: int, unchanged: int, findings: int) -> str:

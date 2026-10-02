@@ -37,7 +37,7 @@ class CorpusExtractor:
     def __init__(
         self,
         store: DocumentStore,
-        extractor: GeminiExtractor,
+        extractor: GeminiExtractor | None,
         corpus_dir: Path,
         compress_dir: Path,
     ) -> None:

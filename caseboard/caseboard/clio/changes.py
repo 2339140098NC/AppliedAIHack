@@ -1,12 +1,45 @@
 """Extract only the PDFs whose Clio version is not already saved."""
 
 from caseboard.clio.client import ClioClient
-from caseboard.clio.documents import diff_pdfs, stored_pdfs
+from caseboard.clio.documents import RemotePdf, diff_pdfs, stored_pdfs
 from caseboard.domain.enums import DocType
 from caseboard.domain.models import SourceFile
 from caseboard.extract.corpus import CorpusExtractor, high_resolution
 from caseboard.extract.gemini import GeminiExtractor
 from caseboard.store.documents import DocumentStore
+
+
+class PdfList:
+    """Remember Clio's PDF names. Extraction is a separate step."""
+
+    def __init__(self, client: ClioClient, store: DocumentStore, corpus: CorpusExtractor) -> None:
+        self._client = client
+        self._store = store
+        self._corpus = corpus
+
+    def record(self, on_progress) -> tuple[int, int, int, int]:
+        """Return counts of new, removed, unchanged, and updated PDFs. Does not call Gemini."""
+        remote, _saved, changed, removed, by_id = _compared(self._client, self._store)
+        for filename in removed:
+            on_progress(f"Removed {filename}")
+            self._corpus.forget(filename)
+        new = 0
+        updated = 0
+        for item in changed:
+            if by_id.get(item.document_id) is None:
+                on_progress(f"Listed {item.filename}")
+                self._store.put(
+                    DocType.source,
+                    item.filename,
+                    SourceFile(filename=item.filename, clio_document_id=item.document_id),
+                )
+                new += 1
+            else:
+                updated += 1
+        if removed:
+            self._corpus.finish()
+        unchanged = len(remote) - len(changed)
+        return new, len(removed), unchanged, updated
 
 
 class PdfChanges:
@@ -26,12 +59,7 @@ class PdfChanges:
 
     def run(self, on_progress) -> tuple[int, int, int, list[str]]:
         """Return counts of changed, removed, and unchanged PDFs, plus per-file errors."""
-        remote = stored_pdfs(self._client.list_documents(self._client.matter_id()))
-        saved = [
-            SourceFile.model_validate(row) for row in self._store.list_type(DocType.source)
-        ]
-        changed, removed = diff_pdfs(saved, remote)
-        by_id = {item.clio_document_id: item for item in saved if item.clio_document_id}
+        remote, _saved, changed, removed, by_id = _compared(self._client, self._store)
         for filename in removed:
             on_progress(f"Removed {filename}")
             self._corpus.forget(filename)
@@ -56,3 +84,13 @@ class PdfChanges:
             self._corpus.finish()
         unchanged = len(remote) - len(changed)
         return len(changed), len(removed), unchanged, problems
+
+
+def _compared(
+    client: ClioClient, store: DocumentStore
+) -> tuple[list[RemotePdf], list[SourceFile], list[RemotePdf], list[str], dict[str, SourceFile]]:
+    remote = stored_pdfs(client.list_documents(client.matter_id()))
+    saved = [SourceFile.model_validate(row) for row in store.list_type(DocType.source)]
+    changed, removed = diff_pdfs(saved, remote)
+    by_id = {item.clio_document_id: item for item in saved if item.clio_document_id}
+    return remote, saved, changed, removed, by_id

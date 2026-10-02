@@ -57,8 +57,8 @@ The process has to listen on the same host and port as `CLIO_REDIRECT_URI`. `tas
 
 **Firm** is the default. Timeline, Evidence, and To-do are the three tabs. The page on the right is the cited PDF.
 
-- **Sync Clio** stores phone calls, emails, notes, and messages, then compares Clio's PDF list to the PDFs already saved. Unchanged files are left alone. New or updated files are sent to Gemini by URL, and files Clio no longer has are dropped. The PDF bytes are not stored.
-- **Extract PDFs** runs that same PDF comparison without refreshing communications. Gemini reads Clio's file URL. Nothing is uploaded or kept.
+- **Sync Clio** stores phone calls, emails, notes, and messages, then compares Clio's PDF list to the PDFs already saved. It records new names and drops files Clio no longer has. It does not send files to Gemini, so the timeline shows up without waiting on extraction.
+- **Extract PDFs** sends only new or updated files to Gemini by Clio's file URL. Unchanged files are left alone. Nothing is uploaded or kept.
 - **Run validations** rebuilds the to-do list from the store. Checking an item off keeps that finding resolved if the same check comes back.
 
 **Provider** drops the firm tabs, the action buttons, and anything marked firm-only. Pick Montefiore Nyack, Advanced Rockland Chiropractic, SportsCare, or New Horizon. That view only includes clinical records that belong to the selected provider.
@@ -92,4 +92,4 @@ On Vercel the filesystem is read-only except `/tmp`, so the SQLite file and the 
 
 Register that callback URL on the Clio app as well. If `CLIO_REDIRECT_URI` is left blank, the app uses `https://$VERCEL_PROJECT_PRODUCTION_URL/callback`.
 
-Every Clio communication is firm-only. On Vercel a new instance starts with an empty database, so the first sync after a cold start still extracts every PDF. Later syncs on the same instance only extract what changed. A pass longer than the function limit can be cut off; the next sync continues with the files that were saved.
+Every Clio communication is firm-only. On Vercel a new instance starts with an empty database, so the timeline comes back on the next sync. **Extract PDFs** is the slow step: the first run reads every file, and a later run only reads files Clio has changed. A pass longer than the function limit can be cut off; the next extract continues with the files that were saved.
