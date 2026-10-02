@@ -13,25 +13,41 @@
     </form>
   </div>
   {% if casefile.expenses %}
-  <div class="grid gap-3 sm:grid-cols-2">
-    {% for bill in casefile.expenses %}
-    <div class="fact-card rounded-lg border border-border bg-card p-4 shadow-sm">
-      <div class="flex items-center justify-between gap-2">
-        <span class="text-sm font-medium">{{ bill.provider }}</span>
-        {% if bill.conflict %}<span class="rounded-md bg-destructive px-1.5 py-0.5 text-[11px] font-medium text-destructive-foreground">Two totals</span>{% endif %}
-      </div>
-      {% if bill.headline %}<div class="mt-2 font-serif text-xl">{{ bill.headline }}</div>{% endif %}
-      {% for line in bill.lines %}
-      <div class="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
-        <span class="text-muted-foreground">{{ line.label }}</span>
-        <strong class="font-medium">{{ line.amount }}</strong>
-        {% if line.href %}
-        <a class="text-xs text-primary hover:underline" href="{{ line.href }}" hx-get="/partials/drawer{{ line.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ line.href }}">{{ line.source }}</a>
-        {% endif %}
-      </div>
-      {% endfor %}
-    </div>
-    {% endfor %}
+  <div class="overflow-x-auto rounded-lg border border-border bg-card shadow-sm">
+    <table class="w-full border-collapse text-sm">
+      <thead>
+        <tr class="border-b border-border bg-muted text-left text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+          <th class="px-3 py-2 font-semibold">Item</th>
+          <th class="w-36 px-3 py-2 font-semibold">Date</th>
+          <th class="w-28 px-3 py-2 text-right font-semibold">Amount</th>
+          <th class="w-56 px-3 py-2 font-semibold">Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for bill in casefile.expenses %}
+        <tr class="border-b border-border bg-secondary text-secondary-foreground">
+          <td class="px-3 py-2 font-medium" colspan="2">
+            {{ bill.provider }}
+            {% if bill.conflict %}<span class="ml-2 rounded-md bg-destructive px-1.5 py-0.5 text-[11px] font-medium text-destructive-foreground">Two totals</span>{% endif %}
+          </td>
+          <td class="px-3 py-2 text-right font-medium tabular-nums">{{ bill.headline }}</td>
+          <td></td>
+        </tr>
+        {% for line in bill.lines %}
+        <tr class="fact-card border-b border-border last:border-b-0 hover:bg-muted">
+          <td class="px-3 py-1.5 pl-6">{{ line.label }}</td>
+          <td class="px-3 py-1.5 text-muted-foreground">{{ line.when or "—" }}</td>
+          <td class="px-3 py-1.5 text-right font-medium tabular-nums">{{ line.amount }}</td>
+          <td class="max-w-56 truncate px-3 py-1.5">
+            {% if line.href %}
+            <a class="text-primary hover:underline" href="{{ line.href }}" hx-get="/partials/drawer{{ line.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ line.href }}">{{ line.source }}</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
   {% else %}
   <p class="py-6 text-sm text-muted-foreground">No bill amounts yet. Read the bills to copy the figures the pages state.</p>

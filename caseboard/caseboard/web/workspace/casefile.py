@@ -1,7 +1,9 @@
 """The case tab: money, people, and only the facts that disagree."""
 
 import re
+from calendar import month_abbr
 from collections import defaultdict
+from datetime import date
 
 from caseboard.domain.enums import GroupStatus, SegmentKind
 from caseboard.domain.models import Charge, ComparisonGroup, Facet, Segment
@@ -46,7 +48,7 @@ def _expenses(charges: list[Charge], query: WorkspaceQuery, source_label) -> lis
         amounts.discard("")
         conflict = len(amounts) > 1
         headline = totals[0].amount if len(amounts) == 1 else ""
-        shown = totals if conflict else [row for row in rows if row not in totals][:8]
+        shown = totals if conflict else [row for row in rows if row not in totals]
         cards.append({
             "provider": name,
             "conflict": conflict,
@@ -217,13 +219,21 @@ def _touch(bucket: dict[str, dict], name: str, role: str, segment: Segment) -> N
         slot["name"] = name
 
 
+def _sheet_date(value: str) -> str:
+    text = (value or "").strip()
+    if len(text) < 10 or text[4] != "-" or text[7] != "-":
+        return text
+    try:
+        parsed = date.fromisoformat(text[:10])
+    except ValueError:
+        return text
+    return f"{month_abbr[parsed.month]} {parsed.day}, {parsed.year}"
+
+
 def _line(charge: Charge, query: WorkspaceQuery, source_label) -> dict:
-    when = charge.service_date
-    label = charge.description
-    if when:
-        label = f"{label} · {when}"
     return {
-        "label": label,
+        "label": charge.description,
+        "when": _sheet_date(charge.service_date),
         "amount": charge.amount,
         "source": source_label(charge.document, charge.page),
         "href": _href(query, charge.document, charge.page, charge.quote),
