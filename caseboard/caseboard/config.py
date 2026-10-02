@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     token_path: Path = DATA / "clio-token.json"
     docs_dir: Path = DATA / "clio-pdfs"
     compress_dir: Path = DATA / "compressed"
+    upstash_redis_rest_url: str = ""
+    upstash_redis_rest_token: str = ""
 
     @field_validator("corpus_dir", mode="before")
     @classmethod
@@ -56,3 +58,7 @@ class Settings(BaseSettings):
     @property
     def clio_ready(self) -> bool:
         return bool(self.clio_client_id.strip() and self.clio_client_secret.strip())
+
+    @property
+    def upstash_ready(self) -> bool:
+        return bool(self.upstash_redis_rest_url.strip() and self.upstash_redis_rest_token.strip())

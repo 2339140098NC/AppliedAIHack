@@ -80,7 +80,7 @@ The sample PDFs stay outside git, in `Sapini documents/` next to `caseboard/`.
 
 Pushes to `main` on [AppliedAIHack](https://github.com/2339140098NC/AppliedAIHack) deploy through Vercel. The repo root `app.py` is the FastAPI entry. Vercel installs `requirements.txt`.
 
-On Vercel the filesystem is read-only except `/tmp`, so the SQLite file and the Clio token live in `/tmp/caseboard`. A new instance starts empty and does not keep the local database. Set these in the Vercel project (Project → Settings → Environment Variables), using the same values as `caseboard/.env`:
+On Vercel the filesystem is read-only except `/tmp`, so the Clio token file lives in `/tmp/caseboard` and the browser cookie keeps the session. The case records live in Upstash Redis when `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are set, so a new instance keeps the timeline and extracts. Without those two variables the app falls back to the local SQLite file. Set these in the Vercel project (Project → Settings → Environment Variables), using the same values as `caseboard/.env`:
 
 | Variable | Production value |
 |---|---|
@@ -89,7 +89,8 @@ On Vercel the filesystem is read-only except `/tmp`, so the SQLite file and the 
 | `CLIO_REDIRECT_URI` | `https://<your-project>.vercel.app/callback` |
 | `CLIO_REGION_HOST` | `https://app.clio.com` |
 | `CLIO_MATTER_ID` | `1811189963` |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | From the Upstash Redis database (REST). |
 
 Register that callback URL on the Clio app as well. If `CLIO_REDIRECT_URI` is left blank, the app uses `https://$VERCEL_PROJECT_PRODUCTION_URL/callback`.
 
-Every Clio communication is firm-only. On Vercel a new instance starts with an empty database, so the timeline comes back on the next sync. **Extract PDFs** is the slow step: the first run reads every file, and a later run only reads files Clio has changed. A pass longer than the function limit can be cut off; the next extract continues with the files that were saved.
+Every Clio communication is firm-only. With Upstash configured, a new instance keeps the saved timeline and extracts. **Extract PDFs** is the slow step: the first run reads every file, and a later run only reads files Clio has changed. A pass longer than the function limit can be cut off; the next extract continues with the files that were saved.

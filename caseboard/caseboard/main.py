@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from caseboard.clio.client import ClioClient
 from caseboard.clio.tokens import TokenStore
 from caseboard.config import ROOT, Settings
-from caseboard.store.documents import DocumentStore
+from caseboard.store.factory import open_store
 from caseboard.web.actions import Actions
 from caseboard.web.jobs import Job
 from caseboard.web.routes import router
@@ -17,7 +17,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     current = settings or Settings()
     app = FastAPI(title="Caseboard")
     app.state.settings = current
-    app.state.store = DocumentStore(current.db_path)
+    app.state.store = open_store(current)
     app.state.clio = ClioClient(current, TokenStore(current.token_path))
     app.state.job = Job()
     app.state.actions = Actions(current, app.state.store, app.state.clio, app.state.job)
