@@ -24,6 +24,7 @@ from caseboard.share.packet import load_share, share_status
 from caseboard.store.documents import DocumentStore
 from caseboard.validate.critical import CRITICAL_GLANCE
 from caseboard.web.workspace.casefile import build_casefile
+from caseboard.web.workspace.decisions import decision_actions
 from caseboard.web.workspace.comms import comm_meta, comm_sub
 from caseboard.web.workspace.extract_view import build_extract_detail
 from caseboard.web.workspace.posture import critical_rank
@@ -73,6 +74,7 @@ class Workspace:
         self.has_portrait = bool(loaded[DocType.portrait])
         self.charges = [Charge.model_validate(row) for row in loaded[DocType.charge]]
         self.summary = _summary_line(loaded[DocType.summary])
+        self.summary_actions = _summary_actions(loaded[DocType.summary])
         self._glances = {
             item.id: item
             for item in (ItemGlance.model_validate(row) for row in loaded[DocType.glance])
@@ -100,7 +102,7 @@ class Workspace:
             "plate": self._plate(len(critical) if query.firm else 0),
             "tabs": self._tabs(len(open_items)),
             "posture": self._posture(critical) if query.firm else "",
-            "status": self._status(len(critical)) if query.firm and query.tab == "timeline" else None,
+            "status": self._status(len(critical), attention, critical) if query.firm and query.tab == "timeline" else None,
             "critical": critical if query.firm else [],
             "urgent": attention[:6],
             "urgent_count": len(attention),
@@ -155,15 +157,19 @@ class Workspace:
     def _posture(self, _critical: list[dict]) -> str:
         return self.summary
 
-    def _status(self, open_count: int) -> dict:
+    def _status(self, open_count: int, urgent: list[dict], critical: list[dict]) -> dict:
         accident = self._value("accident.datetime") or self._value("accident.date")
         pages = sum(item.page_count for item in self.sources)
+        when = _pretty_date(accident)
+        providers = self._provider_count()
+        open_todos = sum(not item.resolved for item in self.findings)
         return {
             "summary": self.summary,
+            "actions": decision_actions(self.summary_actions, urgent, critical),
             "cards": [
-                {"k": "Age of case", "v": case_age(accident, date.today()) or "—", "sub": _pretty_date(accident), "href": ""},
-                {"k": "Providers", "v": str(self._provider_count()), "sub": "", "href": self.query.url(tab="evidence", document="", page="", quote="", sel="")},
-                {"k": "Critical", "v": str(open_count), "sub": "", "href": self.query.url(tab="todo", document="", page="", quote="", sel="")},
+                {"k": "Age of case", "v": case_age(accident, date.today()) or "—", "sub": f"Since {when}" if when else "", "href": ""},
+                {"k": "Providers", "v": str(providers), "sub": "Treating" if providers else "", "href": self.query.url(tab="evidence", document="", page="", quote="", sel="")},
+                {"k": "Critical", "v": str(open_count), "sub": f"Of {open_todos} to-dos" if open_todos else "", "href": self.query.url(tab="todo", document="", page="", quote="", sel="")},
                 {"k": "PDFs", "v": str(len(self.sources)), "sub": f"{pages} pp." if pages else "", "href": ""},
             ],
         }
@@ -739,6 +745,12 @@ def _summary_line(rows: list[dict]) -> str:
     if not rows:
         return ""
     return CaseSummary.model_validate(rows[0]).line
+
+
+def _summary_actions(rows: list[dict]) -> list[str]:
+    if not rows:
+        return []
+    return list(CaseSummary.model_validate(rows[0]).actions)
 
 
 def _title(key: str) -> str:

@@ -1,5 +1,5 @@
-<{% if card.href %}a href="{{ card.href }}"{% else %}div{% endif %} class="flex min-h-28 flex-col justify-between rounded-lg border border-border bg-card p-3 shadow-sm hover:bg-muted">
-  <span class="text-xs font-medium uppercase tracking-widest text-muted-foreground">{{ card.k }}</span>
-  <strong class="text-lg font-medium leading-snug">{{ card.v }}</strong>
+<{% if card.href %}a href="{{ card.href }}"{% else %}div{% endif %} class="flex min-h-36 flex-col justify-between bg-card p-5 hover:bg-muted">
+  <span class="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">{{ card.k }}</span>
+  <strong class="font-serif text-4xl font-medium leading-none">{{ card.v }}</strong>
   {% if card.sub %}<span class="text-xs text-muted-foreground">{{ card.sub }}</span>{% endif %}
 </{% if card.href %}a{% else %}div{% endif %}>

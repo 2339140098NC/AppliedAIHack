@@ -176,10 +176,11 @@ class ItemGlance(BaseModel):
 
 
 class CaseSummary(BaseModel):
-    """One sentence for the lawyer opening the file. Not the header facts."""
+    """One factual sentence for the lawyer opening the file, plus the actions it names."""
 
     id: str
     line: str
+    actions: list[str] = Field(default_factory=list)
 
 
 class Charge(BaseModel):

@@ -1,5 +1,7 @@
 """One generated sentence for the top of the firm home."""
 
+import re
+
 from google import genai
 from google.genai import types
 from pydantic import BaseModel, ConfigDict
@@ -14,13 +16,19 @@ from caseboard.validate.critical import CRITICAL_GLANCE
 
 Store = DocumentStore | UpstashDocumentStore
 _WORDS = 32
+_ACTION_WORDS = 6
+_ADDRESSED = re.compile(r"\b(you|your|you're|we|our)\b", re.IGNORECASE)
 
 _PROMPT = """
-Write one sentence a New York personal-injury lawyer can read when opening this file.
-At most 32 words. Say what is unsettled and what needs a decision.
+Write one sentence for the top of a case file.
+State the contradicted facts and the items still open, as facts.
+At most 32 words.
+Do not address the reader. Do not use you, your, we, or our.
 Do not restate the client's name, the index numbers, or the accident date.
 Do not count the notes. Do not copy a claim number, Social Security number, or policy number.
 Use only the notes. Do not invent facts.
+Also name up to two short actions a lawyer would open next.
+Each action is six words or fewer and must name a concrete item from the notes.
 """.strip()
 
 
@@ -28,6 +36,7 @@ class _Line(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     line: str = ""
+    actions: list[str] = []
 
 
 def write_summary(store: Store, api_key: str, model: str) -> str:
@@ -38,19 +47,20 @@ def write_summary(store: Store, api_key: str, model: str) -> str:
     if not notes:
         raise CaseboardError("Nothing to summarize yet")
     client = genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=60_000))
-    response = client.models.generate_content(
-        model=model,
-        contents=[_PROMPT, notes],
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_json_schema=_Line.model_json_schema(),
-            temperature=0,
-        ),
+    config = types.GenerateContentConfig(
+        response_mime_type="application/json",
+        response_json_schema=_Line.model_json_schema(),
+        temperature=0,
     )
-    line = clip_summary(_parsed(response))
-    if not line:
-        raise CaseboardError("Gemini returned an empty summary")
-    store.put(DocType.summary, "case", CaseSummary(id="case", line=line))
+    parsed = _ask(client, model, [_PROMPT, notes], config)
+    line = clip_summary(parsed.line)
+    if not line or _ADDRESSED.search(line):
+        parsed = _ask(client, model, [_PROMPT, notes, "Rewrite. Do not address the reader."], config)
+        line = clip_summary(parsed.line)
+    if not line or _ADDRESSED.search(line):
+        raise CaseboardError("Gemini returned a summary that addresses the reader")
+    actions = _actions(parsed.actions)
+    store.put(DocType.summary, "case", CaseSummary(id="case", line=line, actions=actions))
     return line
 
 
@@ -86,9 +96,26 @@ def clip_summary(line: str) -> str:
     return line.strip()
 
 
-def _parsed(response) -> str:
+def _ask(client, model: str, contents: list[str], config) -> _Line:
+    response = client.models.generate_content(model=model, contents=contents, config=config)
+    return _parsed(response)
+
+
+def _actions(labels: list[str]) -> list[str]:
+    kept = []
+    for label in labels:
+        words = label.split()
+        text = " ".join(words[:_ACTION_WORDS]).strip(" .")
+        if text and text not in kept:
+            kept.append(text)
+        if len(kept) == 2:
+            break
+    return kept
+
+
+def _parsed(response) -> _Line:
     if response.parsed is not None:
-        return _Line.model_validate(response.parsed).line
+        return _Line.model_validate(response.parsed)
     if not response.text:
-        return ""
-    return _Line.model_validate_json(response.text).line
+        return _Line()
+    return _Line.model_validate_json(response.text)

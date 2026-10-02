@@ -55,6 +55,18 @@ def _query(**changes: str) -> WorkspaceQuery:
     )
 
 
+def test_decision_buttons_open_the_matching_item() -> None:
+    from caseboard.web.workspace.decisions import decision_actions
+
+    urgent = [{"line": "Fifth request for right shoulder arthroscopy", "href": "/?document=a"}]
+    critical = [{"glance": "Addresses disagree", "todo_href": "/?tab=todo&sel=1", "id": "1"}]
+    actions = decision_actions(["Shoulder arthroscopy", "Addresses disagree"], urgent, critical)
+    assert actions[0]["drawer"] is True
+    assert actions[0]["href"] == "/?document=a"
+    assert actions[1]["drawer"] is False
+    assert actions[1]["href"].endswith("#todo-1")
+
+
 def test_case_age_counts_whole_months() -> None:
     assert case_age("2023-04-23", date(2026, 10, 2)) == "3 yr 5 mo"
     assert case_age("2026-09-02", date(2026, 10, 2)) == "1 mo"
@@ -123,11 +135,17 @@ def test_firm_home_leads_with_posture_and_hides_it_from_a_provider(tmp_path: Pat
     store.put(
         DocType.summary,
         "case",
-        CaseSummary(id="case", line="Surgery is waiting on a re-exam, and the papers still disagree on the address."),
+        CaseSummary(
+            id="case",
+            line="Surgery is waiting on a re-exam, and the papers still disagree on the address.",
+            actions=["Right shoulder arthroscopy"],
+        ),
     )
     firm = Workspace(store, _query()).context()
     assert firm["posture"] == "Surgery is waiting on a re-exam, and the papers still disagree on the address."
     assert firm["status"]["summary"] == firm["posture"]
+    assert firm["status"]["actions"][0]["label"] == "Right shoulder arthroscopy"
+    assert firm["status"]["cards"][0]["sub"] == "Since Apr 23, 2023"
     labels = [card["k"] for card in firm["status"]["cards"]]
     assert labels == ["Age of case", "Providers", "Critical", "PDFs"]
     assert firm["status"]["cards"][1]["v"] == "0"

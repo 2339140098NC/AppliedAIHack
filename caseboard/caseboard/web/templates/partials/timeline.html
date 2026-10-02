@@ -1,15 +1,32 @@
 {% if firm %}
 {% if status %}
-<div class="mb-5 grid gap-3 md:grid-cols-[10rem_10rem_minmax(0,1.4fr)_10rem_10rem]">
-  {% for card in status.cards[:2] %}
-  {% include "partials/stat_card.html" %}
-  {% endfor %}
-  <div class="order-first flex items-center rounded-lg border border-border bg-secondary p-4 text-secondary-foreground shadow-sm md:order-none">
-    <p class="text-sm leading-relaxed">{{ status.summary or "No summary yet." }}</p>
+<div class="relative left-1/2 mb-8 w-screen -translate-x-1/2 border-y border-border">
+  <div class="grid lg:grid-cols-[minmax(0,1.45fr)_minmax(22rem,0.8fr)]">
+    <section class="flex flex-col justify-between bg-primary px-6 py-8 text-primary-foreground sm:px-10 lg:min-h-72">
+      <div>
+        <p class="text-[11px] font-medium uppercase tracking-widest text-primary-foreground/70">Decision needed</p>
+        <p class="mt-4 max-w-3xl font-serif text-3xl leading-snug">{{ status.summary or "No summary yet." }}</p>
+      </div>
+      {% if status.actions %}
+      <div class="mt-8 flex flex-wrap gap-2">
+        {% for action in status.actions %}
+        {% if action.href and action.drawer %}
+        <a class="inline-flex items-center rounded-md border border-primary-foreground/40 px-3 py-1.5 text-sm hover:bg-primary-foreground/10" href="{{ action.href }}" hx-get="/partials/drawer{{ action.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ action.href }}">{{ action.label }}</a>
+        {% elif action.href %}
+        <a class="inline-flex items-center rounded-md border border-primary-foreground/40 px-3 py-1.5 text-sm hover:bg-primary-foreground/10" href="{{ action.href }}">{{ action.label }}</a>
+        {% else %}
+        <span class="inline-flex items-center rounded-md border border-primary-foreground/40 px-3 py-1.5 text-sm">{{ action.label }}</span>
+        {% endif %}
+        {% endfor %}
+      </div>
+      {% endif %}
+    </section>
+    <div class="grid grid-cols-2 gap-px bg-border lg:border-l lg:border-border">
+      {% for card in status.cards %}
+      {% include "partials/stat_card.html" %}
+      {% endfor %}
+    </div>
   </div>
-  {% for card in status.cards[2:] %}
-  {% include "partials/stat_card.html" %}
-  {% endfor %}
 </div>
 {% endif %}
 {% if urgent %}
