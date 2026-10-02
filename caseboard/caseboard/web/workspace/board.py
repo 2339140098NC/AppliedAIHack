@@ -30,6 +30,18 @@ from caseboard.web.workspace.query import PROVIDERS, WorkspaceQuery
 _MONTHS = [name.upper() for name in month_abbr if name]
 _KIND = {"call": "Phone", "email": "Email", "note": "Note", "message": "Message"}
 _CLINICAL = {"clinical_note", "imaging_report", "operative_report", "bill"}
+_LOAD = (
+    DocType.source,
+    DocType.segment,
+    DocType.facet,
+    DocType.group,
+    DocType.timeline_event,
+    DocType.validation,
+    DocType.communication,
+    DocType.portrait,
+    DocType.glance,
+    DocType.charge,
+)
 _SECTIONS = (
     ("sensitive", "Before sharing anything", "Things a provider must never see, or that must be fixed first."),
     ("conflict", "Facts that disagree", "Documents say different things. Decide which is right; don’t smooth it over."),
@@ -43,21 +55,22 @@ class Workspace:
     def __init__(self, store: DocumentStore, query: WorkspaceQuery) -> None:
         self.store = store
         self.query = query
-        self.sources = [SourceFile.model_validate(row) for row in store.list_type(DocType.source)]
-        self.segments = [Segment.model_validate(row) for row in store.list_type(DocType.segment)]
-        self.facets = [Facet.model_validate(row) for row in store.list_type(DocType.facet)]
-        self.groups = [ComparisonGroup.model_validate(row) for row in store.list_type(DocType.group)]
-        self.events = [TimelineEvent.model_validate(row) for row in store.list_type(DocType.timeline_event)]
-        self.findings = [Finding.model_validate(row) for row in store.list_type(DocType.validation)]
+        loaded = store.list_types(list(_LOAD))
+        self.sources = [SourceFile.model_validate(row) for row in loaded[DocType.source]]
+        self.segments = [Segment.model_validate(row) for row in loaded[DocType.segment]]
+        self.facets = [Facet.model_validate(row) for row in loaded[DocType.facet]]
+        self.groups = [ComparisonGroup.model_validate(row) for row in loaded[DocType.group]]
+        self.events = [TimelineEvent.model_validate(row) for row in loaded[DocType.timeline_event]]
+        self.findings = [Finding.model_validate(row) for row in loaded[DocType.validation]]
         self._comms = {
             item.clio_id: item
-            for item in (Communication.model_validate(row) for row in store.list_type(DocType.communication))
+            for item in (Communication.model_validate(row) for row in loaded[DocType.communication])
         }
-        self.has_portrait = bool(store.list_type(DocType.portrait))
-        self.charges = [Charge.model_validate(row) for row in store.list_type(DocType.charge)]
+        self.has_portrait = bool(loaded[DocType.portrait])
+        self.charges = [Charge.model_validate(row) for row in loaded[DocType.charge]]
         self._glances = {
             item.id: item
-            for item in (ItemGlance.model_validate(row) for row in store.list_type(DocType.glance))
+            for item in (ItemGlance.model_validate(row) for row in loaded[DocType.glance])
         }
         self._conflict_pages = {
             (cite.document, cite.page)

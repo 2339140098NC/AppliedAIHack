@@ -14,7 +14,7 @@ from caseboard.domain.enums import DocType
 from caseboard.domain.models import Finding
 from caseboard.errors import CaseboardError
 from caseboard.share.packet import send_packet, toggle_item
-from caseboard.web.pages import page_bytes, render_page
+from caseboard.web.pages import cached_page, page_bytes, remember_page, render_page
 from caseboard.web.workspace import Workspace, parse_query
 
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
@@ -64,6 +64,9 @@ def status(request: Request) -> HTMLResponse:
 @router.get("/pages")
 def page_image(request: Request, document: str, page: int = 1) -> Response:
     _open_session(request)
+    remembered = cached_page(document, page)
+    if remembered is not None:
+        return Response(content=remembered, media_type="image/png")
     source = page_bytes(
         request.app.state.settings,
         request.app.state.clio,
@@ -71,6 +74,7 @@ def page_image(request: Request, document: str, page: int = 1) -> Response:
         document,
     )
     png, _scanned, _count = render_page(source, page)
+    remember_page(document, page, png)
     return Response(content=png, media_type="image/png")
 
 

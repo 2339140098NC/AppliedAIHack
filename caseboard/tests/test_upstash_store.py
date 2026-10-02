@@ -30,6 +30,18 @@ class _Pipe:
         self._ops.append(("scard", (key,)))
         return self
 
+    def smembers(self, key: str) -> "_Pipe":
+        self._ops.append(("smembers", (key,)))
+        return self
+
+    def mget(self, *keys: str) -> "_Pipe":
+        self._ops.append(("mget", keys))
+        return self
+
+    def get(self, key: str) -> "_Pipe":
+        self._ops.append(("get", (key,)))
+        return self
+
     def exec(self) -> list:
         return [getattr(self._redis, name)(*args) for name, args in self._ops]
 
@@ -107,6 +119,11 @@ def test_upstash_store_round_trip() -> None:
     )
     names = [row["filename"] for row in store.list_type(DocType.source)]
     assert names == ["letter.pdf"]
+    loaded = store.list_types([DocType.source, DocType.timeline_event, DocType.portrait])
+    assert [row["id"] for row in loaded[DocType.source]] == ["letter.pdf"]
+    assert {row["id"] for row in loaded[DocType.timeline_event]} == {"call-1", "pdf-1"}
+    assert loaded[DocType.portrait] == []
+    assert store.get(DocType.source, "letter.pdf")["filename"] == "letter.pdf"
     assert store.list_type(DocType.source)[0]["id"] == "letter.pdf"
     visible = store.list_type(DocType.timeline_event, sensitivity="provider_visible")
     assert [row["id"] for row in visible] == ["pdf-1"]

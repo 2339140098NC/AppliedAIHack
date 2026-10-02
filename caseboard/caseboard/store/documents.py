@@ -92,6 +92,21 @@ class DocumentStore:
                 (doc_type.value, origin),
             )
 
+    def list_types(self, doc_types: list[DocType]) -> dict[DocType, list[dict]]:
+        return {doc_type: self.list_type(doc_type) for doc_type in doc_types}
+
+    def get(self, doc_type: DocType, record_id: str) -> dict | None:
+        with self._lock, self._connect() as conn:
+            row = conn.execute(
+                "SELECT payload FROM documents WHERE type = ? AND id = ?",
+                (doc_type.value, record_id),
+            ).fetchone()
+        if row is None:
+            return None
+        payload = json.loads(row["payload"])
+        payload["id"] = record_id
+        return payload
+
     def list_type(
         self,
         doc_type: DocType,

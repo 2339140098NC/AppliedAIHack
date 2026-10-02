@@ -74,7 +74,7 @@
         <span class="card-title">{{ item.title }}</span>
         <span class="tag conflict">≠</span>
       </div>
-      {% for row in item.values %}
+      {% for row in item.sides %}
       <div class="bill-line">
         <span class="value">{{ row.value }}</span>
         {% if row.href %}

@@ -105,7 +105,7 @@ def _disagreements(groups: list[ComparisonGroup], query: WorkspaceQuery, source_
         values = list(seen.values())
         if len(values) < 2:
             continue
-        cards.append({"title": _title(group.facet_key), "values": values})
+        cards.append({"title": _title(group.facet_key), "sides": values})
     cards.sort(key=lambda card: card["title"].lower())
     return cards
 

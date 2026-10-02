@@ -1,10 +1,26 @@
 """The case tab keeps money, people, and disagreements scannable."""
 
+from pathlib import Path
+
+from jinja2 import Environment, FileSystemLoader
+
 from caseboard.domain.enums import GroupStatus, SegmentKind, Sensitivity
 from caseboard.domain.models import Charge, ComparisonGroup, Evidence, Facet, GroupEntry, Segment
 from caseboard.extract.bills import BillLine, BillRead, charges_from
 from caseboard.web.workspace.casefile import build_casefile
 from caseboard.web.workspace.query import WorkspaceQuery
+
+
+def _render(casefile: dict) -> str:
+    root = Path(__file__).resolve().parents[1] / "caseboard" / "web" / "templates"
+    env = Environment(loader=FileSystemLoader(root), autoescape=True)
+    return env.get_template("partials/evidence.html").render(
+        query=_query(),
+        casefile=casefile,
+        job={"running": False},
+        gemini_ready=True,
+        clio_connected=True,
+    )
 
 
 def _query() -> WorkspaceQuery:
@@ -101,5 +117,9 @@ def test_case_tab_shows_money_people_and_hides_identifier_conflicts() -> None:
     assert "Expert" in roles
     titles = [item["title"] for item in page["disagreements"]]
     assert "Patient address" in titles
+    html = _render(page)
+    assert "Patient address" in html
+    assert "Two totals" in html
+    assert "Address disagrees" in html
     assert all(not title.lower().startswith("treatment") for title in titles)
-    assert all("123" not in row["value"] for item in page["disagreements"] for row in item["values"])
+    assert all("123" not in row["value"] for item in page["disagreements"] for row in item["sides"])

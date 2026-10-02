@@ -9,6 +9,7 @@ from upstash_redis import Redis
 from caseboard.domain.enums import DocType
 
 _BATCH = 80
+_PRESENCE_ONLY = {DocType.portrait}
 
 
 class UpstashDocumentStore:
@@ -53,6 +54,49 @@ class UpstashDocumentStore:
             pipe.delete(*[_doc_key(doc_type, record_id) for record_id in batch])
             pipe.srem(index, *batch)
             pipe.exec()
+
+    def list_types(self, doc_types: list[DocType]) -> dict[DocType, list[dict]]:
+        """Read several types in two round trips. Portrait stays a presence check."""
+        grouped = {doc_type: [] for doc_type in doc_types}
+        if not doc_types:
+            return grouped
+        pipe = self._redis.pipeline()
+        for doc_type in doc_types:
+            pipe.smembers(_index(doc_type))
+        found = pipe.exec()
+        keys: list[str] = []
+        owners: list[tuple[DocType, str]] = []
+        for doc_type, ids in zip(doc_types, found):
+            members = [str(item) for item in (ids or [])]
+            if doc_type in _PRESENCE_ONLY:
+                grouped[doc_type] = [{"id": record_id} for record_id in members]
+                continue
+            for record_id in members:
+                keys.append(_doc_key(doc_type, record_id))
+                owners.append((doc_type, record_id))
+        raws: list = []
+        chunks = list(_chunks(keys, _BATCH))
+        if chunks:
+            pipe = self._redis.pipeline()
+            for chunk in chunks:
+                pipe.mget(*chunk)
+            for chunk in pipe.exec() or []:
+                raws.extend(chunk or [])
+        for (doc_type, record_id), raw in zip(owners, raws):
+            if not raw:
+                continue
+            payload = json.loads(raw)
+            payload["id"] = record_id
+            grouped[doc_type].append(payload)
+        return grouped
+
+    def get(self, doc_type: DocType, record_id: str) -> dict | None:
+        raw = self._redis.get(_doc_key(doc_type, record_id))
+        if not raw:
+            return None
+        payload = json.loads(raw)
+        payload["id"] = record_id
+        return payload
 
     def list_type(self, doc_type: DocType, *, sensitivity: str | None = None) -> list[dict]:
         ids = self._members(doc_type)
