@@ -5,37 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Proximate</title>
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/static/industry.css">
-  <link rel="stylesheet" href="/static/workspace.css?v=event-form">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap">
+  <link rel="stylesheet" href="/static/theme.css?v=theme">
   <script src="/static/htmx.min.js"></script>
 </head>
-<body data-running="{{ '1' if job.running else '0' }}">
-  <div class="workspace">
-    <header class="masthead">
-      <div class="mast-row">
-        <div class="brand">
-          <img class="monogram" src="/static/favicon.svg" alt="">
+<body data-running="{{ '1' if job.running else '0' }}" class="min-h-screen bg-background font-sans text-foreground antialiased">
+  <div class="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+    <header class="border-b border-border py-4">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <img class="size-8" src="/static/favicon.svg" alt="">
           {% if portrait %}
-          <img class="client-photo" src="/portrait" alt="Client">
+          <img class="h-12 w-10 rounded-md object-cover object-center" src="/portrait" alt="Client">
           {% endif %}
           <div>
-            <div class="kicker">Proximate</div>
-            <div class="matter-title">Sapini v. Ferrara &amp; Metro-North</div>
+            <div class="text-xs font-medium uppercase tracking-widest text-muted-foreground">Proximate</div>
+            <div class="text-lg font-medium">Sapini v. Ferrara &amp; Metro-North</div>
           </div>
         </div>
-        <div class="control">
-          <span class="control-label">View as</span>
-          <div class="seg">
-            <a class="seg-opt" href="{{ query.url(view='firm', tab='timeline', document='', page='', quote='', sel='') }}">
-              <input type="radio" {% if firm %}checked{% endif %} tabindex="-1">Firm
-            </a>
-            <a class="seg-opt" href="{{ query.url(view='provider', tab='timeline', document='', page='', quote='', sel='') }}">
-              <input type="radio" {% if not firm %}checked{% endif %} tabindex="-1">Provider
-            </a>
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="text-xs text-muted-foreground">View as</span>
+          <div class="inline-flex rounded-lg border border-border bg-card p-0.5 text-sm shadow-xs">
+            <a class="rounded-md px-3 py-1 {% if firm %}bg-primary text-primary-foreground{% else %}text-muted-foreground hover:text-foreground{% endif %}" href="{{ query.url(view='firm', tab='timeline', document='', page='', quote='', sel='') }}">Firm</a>
+            <a class="rounded-md px-3 py-1 {% if not firm %}bg-primary text-primary-foreground{% else %}text-muted-foreground hover:text-foreground{% endif %}" href="{{ query.url(view='provider', tab='timeline', document='', page='', quote='', sel='') }}">Provider</a>
           </div>
           {% if not firm %}
-          <select class="input provider-select" aria-label="Provider" onchange="location.href=this.value">
+          <select class="rounded-md border border-input bg-card px-2 py-1.5 text-sm" aria-label="Provider" onchange="location.href=this.value">
             {% for key, name in providers %}
             <option value="{{ query.url(view='provider', provider=key, tab='timeline', document='', page='', quote='', sel='') }}" {% if query.provider == key %}selected{% endif %}>{{ name }}</option>
             {% endfor %}
@@ -44,52 +38,52 @@
         </div>
       </div>
       {% if not firm or query.tab != 'timeline' %}
-      <div id="plate">{% include "partials/plate.html" %}</div>
+      <div id="plate" class="mt-4">{% include "partials/plate.html" %}</div>
       {% endif %}
     </header>
 
     {% if firm %}
-    <div class="ping-row">
-      <span class="ping"><span class="pulse"></span><strong>Firm</strong> New files and comms that need attention</span>
-      <span class="ping"><span class="pulse"></span><strong>Provider</strong> When the status changes</span>
+    <div class="flex flex-wrap gap-x-6 gap-y-2 border-b border-border py-3 text-sm text-muted-foreground">
+      <span class="inline-flex items-center gap-2"><span class="relative flex size-2"><span class="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-60"></span><span class="relative inline-flex size-2 rounded-full bg-primary"></span></span><strong class="font-medium text-foreground">Firm</strong> New files and comms that need attention</span>
+      <span class="inline-flex items-center gap-2"><span class="relative flex size-2"><span class="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-60"></span><span class="relative inline-flex size-2 rounded-full bg-primary"></span></span><strong class="font-medium text-foreground">Provider</strong> When the status changes</span>
     </div>
     {% else %}
-    <div class="provider-banner">
+    <div class="flex flex-wrap items-center gap-3 border-b border-border py-3 text-sm text-muted-foreground">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-      <span>Preview for <strong>{{ provider_name }}</strong>. Checked rows are what they would receive. Hold a row back to keep it with the firm.</span>
-      <span class="ping"><span class="pulse"></span>Status changes ping {{ provider_name }}</span>
+      <span>Preview for <strong class="text-foreground">{{ provider_name }}</strong>. Checked rows are what they would receive. Hold a row back to keep it with the firm.</span>
+      <span class="inline-flex items-center gap-2"><span class="relative flex size-2"><span class="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-60"></span><span class="relative inline-flex size-2 rounded-full bg-primary"></span></span>Status changes ping {{ provider_name }}</span>
     </div>
     {% endif %}
 
-    <div class="tabbar">
-      <div class="tabs">
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border">
+      <div class="flex flex-wrap">
         {% for tab in tabs %}
-        <a class="tab {% if tab.active %}is-active{% endif %}" href="{{ tab.href }}">
-          <span class="num">{{ tab.num }}</span>
+        <a class="inline-flex items-center gap-2 border-b-2 px-3 py-3 text-sm {% if tab.active %}border-primary text-foreground{% else %}border-transparent text-muted-foreground hover:text-foreground{% endif %}" href="{{ tab.href }}">
+          <span class="text-xs text-muted-foreground">{{ tab.num }}</span>
           <span>{{ tab.label }}</span>
-          {% if tab.count %}<span class="tag tag-accent" id="todo-count">{{ tab.count }}</span>{% endif %}
+          {% if tab.count %}<span class="inline-flex items-center rounded-md bg-secondary px-1.5 py-0.5 text-[11px] font-medium text-secondary-foreground" id="todo-count">{{ tab.count }}</span>{% endif %}
         </a>
         {% endfor %}
       </div>
       {% if firm %}
-      <div class="tab-actions">
+      <div class="flex flex-wrap items-center gap-2 py-2">
         <div id="status" hx-get="/partials/status" hx-trigger="load, every 3s [document.body.dataset.running=='1']" hx-swap="innerHTML"></div>
-        <a class="btn btn-secondary" href="{{ query.url(drawer='1', document='', page='', quote='', sel='') }}" hx-get="/partials/drawer{{ query.url(drawer='1', document='', page='', quote='', sel='')[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ query.url(drawer='1', document='', page='', quote='', sel='') }}">Extractions</a>
+        <a class="inline-flex items-center justify-center rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium shadow-xs hover:bg-accent" href="{{ query.url(drawer='1', document='', page='', quote='', sel='') }}" hx-get="/partials/drawer{{ query.url(drawer='1', document='', page='', quote='', sel='')[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ query.url(drawer='1', document='', page='', quote='', sel='') }}">Extractions</a>
         {% if not clio_connected %}
-        <a class="btn btn-secondary" href="/clio/connect">Connect Clio</a>
+        <a class="inline-flex items-center justify-center rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium shadow-xs hover:bg-accent" href="/clio/connect">Connect Clio</a>
         {% endif %}
         <form hx-post="/actions/validate" hx-target="#status" hx-swap="innerHTML">
-          <button class="btn btn-primary blueprint" type="submit">Run validations<i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i></button>
+          <button class="inline-flex items-center justify-center rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground shadow-sm hover:opacity-90" type="submit">Run validations</button>
         </form>
       </div>
       {% endif %}
     </div>
 
-    <div id="stage" class="stage">{% include "partials/stage.html" %}</div>
+    <div id="stage" class="pt-5">{% include "partials/stage.html" %}</div>
   </div>
-  <aside id="drawer" class="drawer {% if drawer_open %}is-open{% endif %}">
-    <a class="drawer-scrim" href="{{ query.url(document='', page='', quote='', sel='', drawer='') }}" data-close-drawer aria-label="Close"></a>
-    <div id="drawer-panel" class="drawer-panel viewer">{% include "partials/drawer.html" %}</div>
+  <aside id="drawer" class="pointer-events-none fixed inset-0 z-40 {% if drawer_open %}is-open{% endif %}">
+    <a class="drawer-scrim pointer-events-none absolute inset-0 bg-foreground/20 opacity-0 transition-opacity" href="{{ query.url(document='', page='', quote='', sel='', drawer='') }}" data-close-drawer aria-label="Close"></a>
+    <div id="drawer-panel" class="absolute inset-y-0 right-0 flex w-[min(760px,100%)] translate-x-full flex-col overflow-y-auto border-l border-border bg-card shadow-xl transition-transform">{% include "partials/drawer.html" %}</div>
   </aside>
   <script>
     document.body.addEventListener("htmx:afterSwap", (event) => {

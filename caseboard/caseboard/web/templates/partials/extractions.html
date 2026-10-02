@@ -1,23 +1,23 @@
 {% if not extractions %}
-<p class="empty">No PDFs yet. Sync Clio to list the matter's files.</p>
+<p class="px-4 py-8 text-sm text-muted-foreground">No PDFs yet. Sync Clio to list the matter's files.</p>
 {% else %}
-<ul class="extract-list">
+<ul class="divide-y divide-border">
   {% for item in extractions %}
-  <li class="extract-row">
-    <div class="extract-copy">
-      <div class="event-label">{{ item.title }}</div>
-      <div class="event-sub">{{ item.filename }}</div>
-      <div class="extract-meta">
-        <span class="tag {% if item.state == 'stale' %}conflict{% elif item.state == 'done' %}tag-accent{% else %}tag-outline{% endif %}">{{ item.label }}</span>
-        {% if item.when %}<span class="event-src">{{ item.when }}</span>{% endif %}
+  <li class="flex flex-wrap items-center gap-3 px-4 py-3">
+    <div class="mr-auto min-w-0">
+      <div class="text-sm font-medium">{{ item.title }}</div>
+      <div class="truncate text-xs text-muted-foreground">{{ item.filename }}</div>
+      <div class="mt-1 flex items-center gap-2">
+        <span class="rounded-md px-1.5 py-0.5 text-[11px] font-medium {% if item.state == 'stale' %}bg-destructive text-destructive-foreground{% elif item.state == 'done' %}bg-secondary text-secondary-foreground{% else %}border border-border text-muted-foreground{% endif %}">{{ item.label }}</span>
+        {% if item.when %}<span class="text-xs text-muted-foreground">{{ item.when }}</span>{% endif %}
       </div>
     </div>
-    <div class="extract-actions">
-      <a class="btn btn-secondary" href="{{ item.extract_href }}" hx-get="/partials/drawer{{ item.extract_href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ item.extract_href }}">Extracted</a>
-      <a class="btn btn-secondary" href="{{ item.href }}" hx-get="/partials/drawer{{ item.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ item.href }}">Open</a>
+    <div class="flex flex-wrap items-center gap-2">
+      <a class="inline-flex items-center justify-center rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium shadow-xs hover:bg-accent" href="{{ item.extract_href }}" hx-get="/partials/drawer{{ item.extract_href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ item.extract_href }}">Extracted</a>
+      <a class="inline-flex items-center justify-center rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium shadow-xs hover:bg-accent" href="{{ item.href }}" hx-get="/partials/drawer{{ item.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ item.href }}">Open</a>
       <form hx-post="/actions/reextract" hx-target="#status" hx-swap="innerHTML">
         <input type="hidden" name="filename" value="{{ item.filename }}">
-        <button class="btn btn-secondary" type="submit" {% if job.running %}disabled{% endif %}>Re-extract</button>
+        <button class="inline-flex items-center justify-center rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium shadow-xs hover:bg-accent disabled:opacity-40" type="submit" {% if job.running %}disabled{% endif %}>Re-extract</button>
       </form>
     </div>
   </li>

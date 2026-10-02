@@ -1,25 +1,23 @@
 {% if share %}
-<div class="send-bar">
-  <div class="send-copy">
-    <div class="pane-title">Packet for {{ provider_name }}</div>
-    <div class="pane-sub">
+<div class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 shadow-sm">
+  <div>
+    <div class="text-base font-medium">Packet for {{ provider_name }}</div>
+    <div class="text-sm text-muted-foreground">
       {{ share.included }} included · {{ share.held }} held back
       {% if share.sent_label %} · Sent {{ share.sent_label }}{% endif %}
       {% if share.changed %} · Changed since that send{% endif %}
     </div>
   </div>
   <form hx-post="/share/send{{ query.url()[1:] }}" hx-target="#stage" hx-swap="innerHTML">
-    <button class="btn btn-primary" type="submit" {% if share.included == 0 %}disabled{% endif %}>
+    <button class="inline-flex items-center justify-center rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground shadow-sm hover:opacity-90 disabled:opacity-40" type="submit" {% if share.included == 0 %}disabled{% endif %}>
       {% if share.changed %}Send update{% elif share.sent %}Send again{% else %}Send{% endif %}
     </button>
   </form>
 </div>
 {% endif %}
-<div class="content">
-  <div class="content-inner">
-    {% if query.tab == "timeline" %}{% include "partials/timeline.html" %}{% endif %}
-    {% if query.tab == "evidence" %}{% include "partials/evidence.html" %}{% endif %}
-    {% if query.tab == "todo" %}{% include "partials/todo.html" %}{% endif %}
-    {% if query.tab == "records" %}{% include "partials/records.html" %}{% endif %}
-  </div>
+<div>
+  {% if query.tab == "timeline" %}{% include "partials/timeline.html" %}{% endif %}
+  {% if query.tab == "evidence" %}{% include "partials/evidence.html" %}{% endif %}
+  {% if query.tab == "todo" %}{% include "partials/todo.html" %}{% endif %}
+  {% if query.tab == "records" %}{% include "partials/records.html" %}{% endif %}
 </div>

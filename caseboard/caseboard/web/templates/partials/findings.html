@@ -1,15 +1,15 @@
 {% if not findings %}
-<p class="empty">No findings. Run validations after an extract or a Clio sync.</p>
+<p class="py-8 text-sm text-muted-foreground">No findings. Run validations after an extract or a Clio sync.</p>
 {% else %}
-<ul class="findings">
+<ul class="divide-y divide-border">
   {% for finding in findings %}
-  <li>
-    <span class="stamp {{ finding.severity }}">{{ finding.severity }}</span>
+  <li class="flex gap-3 py-3">
+    <span class="h-fit rounded-md px-1.5 py-0.5 text-[11px] uppercase {% if finding.severity == 'error' %}bg-destructive text-destructive-foreground{% else %}bg-secondary text-secondary-foreground{% endif %}">{{ finding.severity }}</span>
     <div>
-      <p class="label">{{ finding.message }}</p>
-      <p class="meta">{{ finding.code }}</p>
+      <p class="text-sm font-medium">{{ finding.message }}</p>
+      <p class="text-xs text-muted-foreground">{{ finding.code }}</p>
       {% for cite in finding.evidence %}
-      <p class="cite">{{ cite.document }} p.{{ cite.page }}{% if cite.quote %} — {{ cite.quote }}{% endif %}</p>
+      <p class="text-xs text-muted-foreground">{{ cite.document }} p.{{ cite.page }}{% if cite.quote %} — {{ cite.quote }}{% endif %}</p>
       {% endfor %}
     </div>
   </li>

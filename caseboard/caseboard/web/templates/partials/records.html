@@ -1,43 +1,41 @@
-<div class="stack">
+<div class="grid gap-8">
   <div>
-    <div class="pane-title">What your records show</div>
+    <div class="text-base font-medium">What your records show</div>
     {% if records.facts %}
-    <div class="blueprint record-list {% if share %}can-share{% endif %}" style="margin-top:12px">
-      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <div class="mt-3 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card shadow-sm">
       {% for fact in records.facts %}
-      <div class="record-row {% if share and fact.id in share.held_ids %}is-held{% endif %}" {% if fact.href %}hx-get="/partials/drawer{{ fact.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ fact.href }}"{% endif %}>
+      <div class="record-row flex flex-wrap items-center gap-3 px-3 py-2 text-sm {% if share and fact.id in share.held_ids %}is-held{% endif %}" {% if fact.href %}hx-get="/partials/drawer{{ fact.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ fact.href }}"{% endif %}>
         {% if share %}{% with item_id=fact.id, held=fact.id in share.held_ids %}{% include "partials/share_toggle.html" %}{% endwith %}{% endif %}
-        <span style="font-size:13px;color:var(--color-neutral-700)">{{ fact.label }}</span>
-        <span class="value">{{ fact.value }}</span>
-        <span style="font-size:12px;color:var(--color-accent-700)">{{ fact.src }}</span>
-        {% if share and fact.id in share.held_ids %}<span class="tag tag-outline dashed">Held</span>{% endif %}
+        <span class="text-muted-foreground">{{ fact.label }}</span>
+        <span class="font-medium">{{ fact.value }}</span>
+        <span class="text-xs text-muted-foreground">{{ fact.src }}</span>
+        {% if share and fact.id in share.held_ids %}<span class="rounded-md border border-dashed border-border px-1.5 py-0.5 text-[11px] text-muted-foreground">Held</span>{% endif %}
       </div>
       {% endfor %}
     </div>
     {% else %}
-    <p class="empty">No cited facts from this provider yet.</p>
+    <p class="py-6 text-sm text-muted-foreground">No cited facts from this provider yet.</p>
     {% endif %}
   </div>
   <div>
-    <div class="pane-title">Your documents</div>
+    <div class="text-base font-medium">Your documents</div>
     {% if records.documents %}
-    <div style="margin-top:12px">
+    <div class="mt-3 grid gap-2">
       {% for doc in records.documents %}
-      <div class="blueprint doc-row {% if share and doc.id in share.held_ids %}is-held{% endif %}">
-        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div class="flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-3 shadow-sm {% if share and doc.id in share.held_ids %}is-held{% endif %}">
         {% if share %}{% with item_id=doc.id, held=doc.id in share.held_ids %}{% include "partials/share_toggle.html" %}{% endwith %}{% endif %}
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--color-accent)"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path></svg>
-        <div style="margin-right:auto">
-          <div style="font-size:15px;font-weight:500">{{ doc.label }}</div>
-          <div class="pane-sub">{{ doc.pages }}</div>
+        <svg class="text-primary" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path></svg>
+        <div class="mr-auto min-w-0">
+          <div class="text-sm font-medium">{{ doc.label }}</div>
+          <div class="text-xs text-muted-foreground">{{ doc.pages }}</div>
         </div>
-        {% if share and doc.id in share.held_ids %}<span class="tag tag-outline dashed">Held</span>{% endif %}
-        <button class="btn btn-secondary" type="button" hx-get="/partials/drawer{{ doc.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ doc.href }}">Open</button>
+        {% if share and doc.id in share.held_ids %}<span class="rounded-md border border-dashed border-border px-1.5 py-0.5 text-[11px] text-muted-foreground">Held</span>{% endif %}
+        <button class="inline-flex items-center justify-center rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium shadow-xs hover:bg-accent" type="button" hx-get="/partials/drawer{{ doc.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ doc.href }}">Open</button>
       </div>
       {% endfor %}
     </div>
     {% else %}
-    <p class="empty">No documents from this provider yet.</p>
+    <p class="py-6 text-sm text-muted-foreground">No documents from this provider yet.</p>
     {% endif %}
   </div>
 </div>

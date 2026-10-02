@@ -1,64 +1,60 @@
-<div class="viewer-head">
-  <div style="min-width:0;margin-right:auto">
-    <div class="viewer-title">{{ viewer.title }}</div>
-    <div class="viewer-sub">{{ viewer.sub }}</div>
+<div class="px-4 py-4">
+  <div class="mb-3">
+    <div class="text-base font-medium">{{ viewer.title }}</div>
+    <div class="text-sm text-muted-foreground">{{ viewer.sub }}</div>
   </div>
-</div>
 {% if viewer.chips %}
-<div class="chips">
-  <span class="event-kind">What's in this file</span>
-  <div class="chip-row">
+<div class="mb-4">
+  <span class="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">What's in this file</span>
+  <div class="mt-2 flex flex-wrap gap-2">
     {% for chip in viewer.chips %}
-    <a class="chip {% if chip.active %}is-active{% endif %}" href="{{ chip.href }}" hx-get="/partials/drawer{{ chip.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ chip.href }}">
-      <span style="font-size:12px;font-weight:500;white-space:nowrap">{{ chip.label }}</span>
-      <span style="font-size:11px;opacity:.8">{{ chip.range }}</span>
+    <a class="inline-flex items-center gap-2 rounded-md border px-2 py-1 text-xs {% if chip.active %}border-primary bg-primary text-primary-foreground{% else %}border-border bg-card text-foreground hover:bg-muted{% endif %}" href="{{ chip.href }}" hx-get="/partials/drawer{{ chip.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ chip.href }}">
+      <span class="font-medium">{{ chip.label }}</span>
+      <span class="opacity-80">{{ chip.range }}</span>
     </a>
     {% endfor %}
   </div>
 </div>
 {% endif %}
 {% if viewer.record %}
-<div class="page-stage">
-  <div class="page-sheet record-sheet">
-    {% if viewer.meta %}
-    <div class="record-meta">
-      {% for row in viewer.meta %}
-      <div><span class="record-k">{{ row.label }}</span><span>{{ row.value }}</span></div>
-      {% endfor %}
-    </div>
-    {% endif %}
-    <div class="record-body">{{ viewer.body }}</div>
+<div class="rounded-lg border border-border bg-background p-4 shadow-sm">
+  {% if viewer.meta %}
+  <div class="mb-3 grid gap-1 text-sm">
+    {% for row in viewer.meta %}
+    <div><span class="mr-2 text-xs uppercase tracking-wide text-muted-foreground">{{ row.label }}</span><span>{{ row.value }}</span></div>
+    {% endfor %}
   </div>
+  {% endif %}
+  <div class="whitespace-pre-wrap text-sm leading-relaxed">{{ viewer.body }}</div>
 </div>
 {% elif viewer.document %}
-<div class="toolbar">
-  <a class="btn btn-icon btn-secondary" href="{{ viewer.prev }}" hx-get="/partials/drawer{{ viewer.prev[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ viewer.prev }}" aria-label="Previous page" style="width:30px;height:30px">
+<div class="mb-3 flex items-center gap-2">
+  <a class="inline-flex size-8 items-center justify-center rounded-md border border-border bg-card hover:bg-accent" href="{{ viewer.prev }}" hx-get="/partials/drawer{{ viewer.prev[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ viewer.prev }}" aria-label="Previous page">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m15 18-6-6 6-6"></path></svg>
   </a>
-  <span class="page-label">{{ viewer.page_label }}</span>
-  <a class="btn btn-icon btn-secondary" href="{{ viewer.next }}" hx-get="/partials/drawer{{ viewer.next[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ viewer.next }}" aria-label="Next page" style="width:30px;height:30px">
+  <span class="text-sm text-muted-foreground">{{ viewer.page_label }}</span>
+  <a class="inline-flex size-8 items-center justify-center rounded-md border border-border bg-card hover:bg-accent" href="{{ viewer.next }}" hx-get="/partials/drawer{{ viewer.next[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ viewer.next }}" aria-label="Next page">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m9 18 6-6-6-6"></path></svg>
   </a>
-  <span class="tag tag-accent seg-tag">{{ viewer.seg_label }}</span>
+  <span class="rounded-md bg-secondary px-1.5 py-0.5 text-[11px] font-medium text-secondary-foreground">{{ viewer.seg_label }}</span>
 </div>
-<div class="page-stage">
-  <div class="page-sheet">
-    {% if viewer.banner %}<div class="page-banner"><span>FILED: NEW YORK COUNTY CLERK</span><span>{{ viewer.banner }}</span></div>{% endif %}
-    {% if viewer.image %}
-    <img src="/pages?document={{ viewer.document | urlencode }}&amp;page={{ viewer.page }}" alt="Page {{ viewer.page }} of {{ viewer.sub }}">
-    {% endif %}
-    {% if viewer.quotes %}
-    <div class="quote-stack">
-      {% for quote in viewer.quotes %}
-      <p class="quote {% if quote.active %}is-active{% endif %}">{{ quote.text }}{% if quote.redacted %} <span class="redact"></span>{% endif %}</p>
-      {% endfor %}
-    </div>
-    {% elif not viewer.image %}
-    <p class="empty">Select a source to open its page.</p>
-    {% endif %}
-    {% if viewer.footer %}<div class="page-footer">{{ viewer.footer }}</div>{% endif %}
+<div class="rounded-lg border border-border bg-background p-3 shadow-sm">
+  {% if viewer.banner %}<div class="mb-2 flex justify-between text-[10px] uppercase tracking-widest text-muted-foreground"><span>FILED: NEW YORK COUNTY CLERK</span><span>{{ viewer.banner }}</span></div>{% endif %}
+  {% if viewer.image %}
+  <img class="w-full" src="/pages?document={{ viewer.document | urlencode }}&amp;page={{ viewer.page }}" alt="Page {{ viewer.page }} of {{ viewer.sub }}">
+  {% endif %}
+  {% if viewer.quotes %}
+  <div class="mt-3 grid gap-2">
+    {% for quote in viewer.quotes %}
+    <p class="border-l-2 py-1 pl-3 text-sm {% if quote.active %}border-primary bg-secondary text-secondary-foreground{% else %}border-border text-muted-foreground{% endif %}">{{ quote.text }}{% if quote.redacted %} <span class="inline-block h-3 w-16 rounded-sm bg-foreground align-middle"></span>{% endif %}</p>
+    {% endfor %}
   </div>
+  {% elif not viewer.image %}
+  <p class="py-8 text-sm text-muted-foreground">Select a source to open its page.</p>
+  {% endif %}
+  {% if viewer.footer %}<div class="mt-3 text-xs text-muted-foreground">{{ viewer.footer }}</div>{% endif %}
 </div>
 {% else %}
-<div class="page-stage"><p class="empty" style="color:var(--color-accent-300)">Select a source to open its page.</p></div>
+<p class="py-8 text-sm text-muted-foreground">Select a source to open its page.</p>
 {% endif %}
+</div>

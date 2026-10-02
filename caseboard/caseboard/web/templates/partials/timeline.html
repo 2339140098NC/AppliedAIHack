@@ -1,12 +1,11 @@
 {% if firm %}
 {% if status %}
-<div class="status-band">
+<div class="mb-5 grid gap-3 md:grid-cols-[10rem_10rem_minmax(0,1.4fr)_10rem_10rem]">
   {% for card in status.cards[:2] %}
   {% include "partials/stat_card.html" %}
   {% endfor %}
-  <div class="summary-card blueprint">
-    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
-    <p>{{ status.summary or "No summary yet." }}</p>
+  <div class="order-first flex items-center rounded-lg border border-border bg-secondary p-4 text-secondary-foreground shadow-sm md:order-none">
+    <p class="text-sm leading-relaxed">{{ status.summary or "No summary yet." }}</p>
   </div>
   {% for card in status.cards[2:] %}
   {% include "partials/stat_card.html" %}
@@ -14,75 +13,74 @@
 </div>
 {% endif %}
 {% if urgent %}
-<ul class="glance">
+<ul class="mb-5 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card shadow-sm">
   {% for item in urgent %}
-  <li>
+  <li class="flex items-baseline gap-3 px-3 py-2 text-sm">
     {% with tone=item.tone %}{% include "partials/mark.html" %}{% endwith %}
-    <span class="glance-cat">{{ item.category }}</span>
-    <span class="glance-date">{{ item.when }}</span>
+    <span class="w-24 shrink-0 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{{ item.category }}</span>
+    <span class="w-28 shrink-0 text-xs text-muted-foreground">{{ item.when }}</span>
     {% if item.href %}
-    <a href="{{ item.href }}" hx-get="/partials/drawer{{ item.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ item.href }}">{{ item.line }}</a>
+    <a class="min-w-0 hover:underline" href="{{ item.href }}" hx-get="/partials/drawer{{ item.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ item.href }}">{{ item.line }}</a>
     {% else %}
-    <span>{{ item.line }}</span>
+    <span class="min-w-0">{{ item.line }}</span>
     {% endif %}
   </li>
   {% endfor %}
 </ul>
 {% endif %}
 {% if critical %}
-<div class="crit-grid">
+<div class="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
   {% for item in critical %}
-  <a class="crit-card blueprint" href="{{ item.todo_href }}#todo-{{ item.id }}">
-    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
-    <strong>{{ item.glance }}</strong>
-    <span class="crit-go">Open in to-do</span>
+  <a class="rounded-lg border border-border bg-card p-3 shadow-sm hover:bg-muted" href="{{ item.todo_href }}#todo-{{ item.id }}">
+    <strong class="block text-sm font-medium">{{ item.glance }}</strong>
+    <span class="mt-1 block text-xs text-muted-foreground">Open in to-do</span>
   </a>
   {% endfor %}
 </div>
 {% endif %}
 {% endif %}
 {% if not years %}
-<p class="empty">Nothing on the timeline yet.</p>
+<p class="py-8 text-sm text-muted-foreground">Nothing on the timeline yet.</p>
 {% else %}
 {% for year in years %}
-<div>
-  <div class="year-head">
-    <span class="year-label">{{ year.label }}</span>
-    <span class="year-count">{{ year.count }}</span>
+<div class="mb-6">
+  <div class="mb-2 flex items-baseline justify-between">
+    <span class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{{ year.label }}</span>
+    <span class="text-xs text-muted-foreground">{{ year.count }}</span>
   </div>
   {% for event in year.events %}
-  <div class="event {% if event.selected %}is-selected{% endif %} {% if event.urgent %}is-urgent{% endif %} {% if share and event.id in share.held_ids %}is-held{% endif %}"
+  <div class="event grid cursor-pointer grid-cols-[3.25rem_1rem_5.25rem_minmax(0,1fr)_auto] items-start gap-x-3 border-b border-border px-1 py-3 hover:bg-muted {% if event.selected %}is-selected{% endif %} {% if event.urgent %}is-urgent{% endif %} {% if share and event.id in share.held_ids %}is-held{% endif %}"
        {% if event.href %}hx-get="/partials/drawer{{ event.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ event.href }}"{% endif %}>
     <div>
-      <div class="event-month">{{ event.month }}</div>
-      <div class="event-day">{{ event.day }}</div>
+      <div class="text-[11px] uppercase tracking-wide text-muted-foreground">{{ event.month }}</div>
+      <div class="text-lg font-medium leading-none">{{ event.day }}</div>
     </div>
-    <div class="spine">
-      <div class="spine-line"></div>
-      <div class="node {% if event.firm_only %}firm{% endif %} {% if event.conflict %}conflict{% endif %}"></div>
+    <div class="relative flex h-full justify-center">
+      <div class="absolute inset-y-0 w-px bg-border"></div>
+      <div class="relative mt-1.5 size-2 rounded-full {% if event.conflict %}bg-destructive{% elif event.firm_only %}bg-muted-foreground{% else %}bg-primary{% endif %}"></div>
     </div>
-    <div class="event-form">{{ event.form }}</div>
-    <div>
-      <div class="event-kind">{% with tone=event.tone %}{% include "partials/mark.html" %}{% endwith %}{% if event.kind != event.form %}{{ event.kind }}{% endif %}{% if event.urgent %}<span class="tag urgent">Important</span>{% endif %}</div>
-      <div class="event-label">{{ event.label }}</div>
-      {% if event.sub %}<div class="event-sub">{{ event.sub }}</div>{% endif %}
+    <div class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ event.form }}</div>
+    <div class="min-w-0">
+      <div class="flex items-center gap-2 text-xs text-muted-foreground">{% with tone=event.tone %}{% include "partials/mark.html" %}{% endwith %}{% if event.kind != event.form %}{{ event.kind }}{% endif %}{% if event.urgent %}<span class="rounded-md bg-destructive px-1.5 py-0.5 text-[11px] font-medium text-destructive-foreground">Important</span>{% endif %}</div>
+      <div class="text-sm font-medium">{{ event.label }}</div>
+      {% if event.sub %}<div class="text-sm text-muted-foreground">{{ event.sub }}</div>{% endif %}
       {% if event.src %}
-      <div class="event-src">
+      <div class="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path></svg>
         {{ event.src }}
       </div>
       {% endif %}
     </div>
-    <div class="flags">
+    <div class="flex flex-wrap items-center justify-end gap-1.5">
       {% if share %}
       {% with item_id=event.id, held=event.id in share.held_ids %}{% include "partials/share_toggle.html" %}{% endwith %}
-      {% if event.id in share.held_ids %}<span class="tag tag-outline dashed">Held</span>{% endif %}
+      {% if event.id in share.held_ids %}<span class="rounded-md border border-dashed border-border px-1.5 py-0.5 text-[11px] text-muted-foreground">Held</span>{% endif %}
       {% endif %}
-      {% if event.conflict %}<span class="tag conflict">≠ Conflict</span>{% endif %}
-      {% if event.sensitive %}<span class="tag tag-neutral sensitive">Sensitive</span>{% endif %}
-      {% if event.incomplete %}<span class="tag tag-outline dashed">{{ event.incomplete_label }}</span>{% endif %}
+      {% if event.conflict %}<span class="rounded-md bg-destructive px-1.5 py-0.5 text-[11px] font-medium text-destructive-foreground">Conflict</span>{% endif %}
+      {% if event.sensitive %}<span class="rounded-md bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground">Sensitive</span>{% endif %}
+      {% if event.incomplete %}<span class="rounded-md border border-dashed border-border px-1.5 py-0.5 text-[11px] text-muted-foreground">{{ event.incomplete_label }}</span>{% endif %}
       {% if event.show_vis %}
-      <span class="vis">
+      <span class="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
         {% if event.firm_only %}
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
         {% else %}

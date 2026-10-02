@@ -1,21 +1,21 @@
 {% if extract_detail %}
-<div class="drawer-bar">
-  <a class="btn btn-ghost" href="{{ query.url(document='', page='', quote='', drawer='1', panel='') }}" hx-get="/partials/drawer{{ query.url(document='', page='', quote='', drawer='1', panel='')[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ query.url(document='', page='', quote='', drawer='1', panel='') }}">Extractions</a>
-  <div class="viewer-title">{{ extract_detail.title }}</div>
-  <a class="btn btn-ghost" href="{{ extract_detail.page_href }}" hx-get="/partials/drawer{{ extract_detail.page_href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ extract_detail.page_href }}">Open page</a>
-  <a class="btn btn-ghost" href="{{ query.url(document='', page='', quote='', sel='', drawer='', panel='') }}" data-close-drawer>Close</a>
+<div class="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-card px-4 py-3">
+  <a class="text-sm text-muted-foreground hover:text-foreground" href="{{ query.url(document='', page='', quote='', drawer='1', panel='') }}" hx-get="/partials/drawer{{ query.url(document='', page='', quote='', drawer='1', panel='')[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ query.url(document='', page='', quote='', drawer='1', panel='') }}">Extractions</a>
+  <div class="mr-auto min-w-0 truncate text-sm font-medium">{{ extract_detail.title }}</div>
+  <a class="text-sm text-muted-foreground hover:text-foreground" href="{{ extract_detail.page_href }}" hx-get="/partials/drawer{{ extract_detail.page_href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ extract_detail.page_href }}">Open page</a>
+  <a class="text-sm text-muted-foreground hover:text-foreground" href="{{ query.url(document='', page='', quote='', sel='', drawer='', panel='') }}" data-close-drawer>Close</a>
 </div>
 {% include "partials/extract_detail.html" %}
 {% else %}
-<div class="drawer-bar">
+<div class="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-card px-4 py-3">
   {% if firm and viewer.document %}
-  <a class="btn btn-ghost" href="{{ query.url(document='', page='', quote='', drawer='1', panel='') }}" hx-get="/partials/drawer{{ query.url(document='', page='', quote='', drawer='1', panel='')[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ query.url(document='', page='', quote='', drawer='1', panel='') }}">Extractions</a>
+  <a class="text-sm text-muted-foreground hover:text-foreground" href="{{ query.url(document='', page='', quote='', drawer='1', panel='') }}" hx-get="/partials/drawer{{ query.url(document='', page='', quote='', drawer='1', panel='')[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ query.url(document='', page='', quote='', drawer='1', panel='') }}">Extractions</a>
   {% elif firm %}
-  <div class="viewer-title">Extractions</div>
+  <div class="mr-auto text-sm font-medium">Extractions</div>
   {% else %}
-  <div class="viewer-title">Record</div>
+  <div class="mr-auto text-sm font-medium">Record</div>
   {% endif %}
-  <a class="btn btn-ghost" href="{{ query.url(document='', page='', quote='', sel='', drawer='', panel='') }}" data-close-drawer>Close</a>
+  <a class="ml-auto text-sm text-muted-foreground hover:text-foreground" href="{{ query.url(document='', page='', quote='', sel='', drawer='', panel='') }}" data-close-drawer>Close</a>
 </div>
 {% if firm and not viewer.document %}
 {% include "partials/extractions.html" %}

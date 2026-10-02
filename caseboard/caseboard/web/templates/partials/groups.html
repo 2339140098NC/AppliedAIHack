@@ -1,19 +1,19 @@
 {% if not groups %}
-<p class="empty">No comparison groups for this audience yet.</p>
+<p class="py-8 text-sm text-muted-foreground">No comparison groups for this audience yet.</p>
 {% else %}
-<ul class="groups">
+<ul class="grid gap-4">
   {% for group in groups %}
-  <li>
-    <header>
-      <h3>{{ group.facet_key }}</h3>
-      <span class="stamp {{ group.status }}">{{ group.status }}</span>
+  <li class="rounded-lg border border-border bg-card p-4 shadow-sm">
+    <header class="mb-3 flex items-center justify-between">
+      <h3 class="text-sm font-medium">{{ group.facet_key }}</h3>
+      <span class="rounded-md bg-secondary px-1.5 py-0.5 text-[11px] text-secondary-foreground">{{ group.status }}</span>
     </header>
     {% for entry in group.entries %}
-    <article>
-      <p class="value">{{ entry.value if entry.value else "Blank" }}</p>
-      <p class="meta">{{ entry.authored_by or "Unknown author" }}</p>
+    <article class="border-t border-border py-2">
+      <p class="text-sm">{{ entry.value if entry.value else "Blank" }}</p>
+      <p class="text-xs text-muted-foreground">{{ entry.authored_by or "Unknown author" }}</p>
       {% for cite in entry.evidence %}
-      <p class="cite">{{ cite.document }} p.{{ cite.page }}{% if cite.quote %} — {{ cite.quote }}{% endif %}</p>
+      <p class="text-xs text-muted-foreground">{{ cite.document }} p.{{ cite.page }}{% if cite.quote %} — {{ cite.quote }}{% endif %}</p>
       {% endfor %}
     </article>
     {% endfor %}

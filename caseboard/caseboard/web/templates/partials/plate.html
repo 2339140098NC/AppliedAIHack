@@ -1,8 +1,8 @@
-<div class="plate">
+<div class="grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-5">
   {% for cell in plate %}
-  <div class="plate-cell">
-    <span class="plate-label">{{ cell.k }}</span>
-    <span class="plate-value">{% if cell.live %}<span class="pulse"></span>{% endif %}{{ cell.v }}</span>
+  <div class="bg-card px-3 py-2">
+    <span class="block text-[11px] font-medium uppercase tracking-widest text-muted-foreground">{{ cell.k }}</span>
+    <span class="mt-0.5 flex items-center gap-1.5 text-sm">{% if cell.live %}<span class="relative flex size-2"><span class="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-60"></span><span class="relative inline-flex size-2 rounded-full bg-primary"></span></span>{% endif %}{{ cell.v }}</span>
   </div>
   {% endfor %}
 </div>

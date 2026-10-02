@@ -1,41 +1,41 @@
-<div class="extract-detail">
+<div class="px-4 py-4">
   {% if extract_detail.empty %}
-  <p class="empty">This PDF has not been extracted.</p>
+  <p class="py-6 text-sm text-muted-foreground">This PDF has not been extracted.</p>
   <form hx-post="/actions/reextract" hx-target="#status" hx-swap="innerHTML">
     <input type="hidden" name="filename" value="{{ extract_detail.filename }}">
-    <button class="btn btn-secondary" type="submit" {% if job.running %}disabled{% endif %}>Re-extract</button>
+    <button class="inline-flex items-center justify-center rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium shadow-xs hover:bg-accent disabled:opacity-40" type="submit" {% if job.running %}disabled{% endif %}>Re-extract</button>
   </form>
   {% else %}
   {% if extract_detail.segments %}
-  <div class="section-head"><span class="section-title">Segments</span></div>
+  <div class="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Segments</div>
   {% for item in extract_detail.segments %}
-  <div class="extract-fact">
-    <div class="event-label">{{ item.kind }}</div>
-    <div class="event-sub">{{ item.pages }}{% if item.who %} · {{ item.who }}{% endif %}</div>
+  <div class="border-b border-border py-2">
+    <div class="text-sm font-medium">{{ item.kind }}</div>
+    <div class="text-xs text-muted-foreground">{{ item.pages }}{% if item.who %} · {{ item.who }}{% endif %}</div>
   </div>
   {% endfor %}
   {% endif %}
   {% if extract_detail.facts %}
-  <div class="section-head"><span class="section-title">Facts</span></div>
+  <div class="mb-2 mt-5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Facts</div>
   {% for item in extract_detail.facts %}
-  <div class="extract-fact">
-    <div class="event-label">{{ item.title }}</div>
-    <div class="value {% if item.blank %}blank{% endif %}">{{ item.value }}</div>
-    <div class="extract-meta">
-      {% if item.redacted %}<span class="tag tag-outline">Redacted</span>{% endif %}
-      {% if item.firm_only %}<span class="tag tag-neutral">Firm only</span>{% endif %}
-      <a class="src-link" href="{{ item.href }}" hx-get="/partials/drawer{{ item.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ item.href }}">{{ item.label }}</a>
+  <div class="border-b border-border py-2">
+    <div class="text-sm font-medium">{{ item.title }}</div>
+    <div class="text-sm {% if item.blank %}text-muted-foreground{% endif %}">{{ item.value }}</div>
+    <div class="mt-1 flex flex-wrap items-center gap-2">
+      {% if item.redacted %}<span class="rounded-md border border-border px-1.5 py-0.5 text-[11px] text-muted-foreground">Redacted</span>{% endif %}
+      {% if item.firm_only %}<span class="rounded-md bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground">Firm only</span>{% endif %}
+      <a class="text-xs text-primary hover:underline" href="{{ item.href }}" hx-get="/partials/drawer{{ item.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ item.href }}">{{ item.label }}</a>
     </div>
   </div>
   {% endfor %}
   {% endif %}
   {% if extract_detail.events %}
-  <div class="section-head"><span class="section-title">Timeline</span></div>
+  <div class="mb-2 mt-5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Timeline</div>
   {% for item in extract_detail.events %}
-  <div class="extract-fact">
-    <div class="event-kind">{{ item.kind }} · {{ item.when }}</div>
-    <div class="event-label">{{ item.label }}</div>
-    <a class="src-link" href="{{ item.href }}" hx-get="/partials/drawer{{ item.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ item.href }}">{{ item.page }}</a>
+  <div class="border-b border-border py-2">
+    <div class="text-xs text-muted-foreground">{{ item.kind }} · {{ item.when }}</div>
+    <div class="text-sm font-medium">{{ item.label }}</div>
+    <a class="text-xs text-primary hover:underline" href="{{ item.href }}" hx-get="/partials/drawer{{ item.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ item.href }}">{{ item.page }}</a>
   </div>
   {% endfor %}
   {% endif %}

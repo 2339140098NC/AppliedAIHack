@@ -1,44 +1,43 @@
-<div class="todo-wrap">
+<div class="mb-5 flex flex-wrap items-end justify-between gap-4">
   <div>
-    <div class="pane-title">To-do</div>
-    <div class="pane-sub">{{ open_count }} of {{ finding_count }} still open. Click a source to see the page; tick the box when it’s handled.</div>
+    <div class="text-base font-medium">To-do</div>
+    <div class="text-sm text-muted-foreground">{{ open_count }} of {{ finding_count }} still open. Click a source to see the page; tick the box when it’s handled.</div>
   </div>
-  <div class="blueprint stats">
-    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+  <div class="flex overflow-hidden rounded-lg border border-border bg-card shadow-sm">
     {% for key, label, sub in sections %}
-    <div class="stat {% if loop.first %}first{% endif %}">
-      <span class="stat-num">{{ findings | selectattr('severity', 'equalto', key) | rejectattr('done') | list | length }}</span>
-      <span class="stat-label">{{ label }}</span>
+    <div class="px-4 py-2 {% if not loop.first %}border-l border-border{% endif %}">
+      <span class="block text-lg font-medium">{{ findings | selectattr('severity', 'equalto', key) | rejectattr('done') | list | length }}</span>
+      <span class="text-[11px] uppercase tracking-wide text-muted-foreground">{{ label }}</span>
     </div>
     {% endfor %}
   </div>
-  {% for key, label, sub in sections %}
-  <div>
-    <div class="section-head">
-      <span class="section-title">{{ label }}</span>
-      <span class="pane-sub">{{ sub }}</span>
-    </div>
-    {% for item in findings if item.severity == key %}
-    <div class="todo {% if query.selected == item.id %}is-selected{% endif %}" id="todo-{{ item.id }}">
-      <button class="check {% if item.done %}is-done{% endif %}" type="button" aria-label="Mark resolved"
-              hx-post="/findings/{{ item.id }}/resolved?{{ query.url().split('?', 1)[1] }}" hx-target="#stage" hx-swap="innerHTML">
-        {% if item.done %}
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg>
-        {% endif %}
-      </button>
-      <div class="todo-text {% if item.done %}is-done{% endif %}">
-        <span class="todo-title">{{ item.title }}</span>
-        <span class="todo-detail">{{ item.detail }}</span>
-        {% if item.sources %}
-        <div class="src-row">
-          {% for source in item.sources %}
-          <a class="src-link" href="{{ source.href }}" hx-get="/partials/drawer{{ source.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ source.href }}">{{ source.label }}</a>
-          {% endfor %}
-        </div>
-        {% endif %}
+</div>
+{% for key, label, sub in sections %}
+<div class="mb-6">
+  <div class="mb-2 flex items-baseline gap-3">
+    <span class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{{ label }}</span>
+    <span class="text-xs text-muted-foreground">{{ sub }}</span>
+  </div>
+  {% for item in findings if item.severity == key %}
+  <div class="flex gap-3 border-b border-border py-3 {% if query.selected == item.id %}is-selected{% endif %}" id="todo-{{ item.id }}">
+    <button class="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded border border-input bg-card {% if item.done %}border-primary bg-primary text-primary-foreground{% endif %}" type="button" aria-label="Mark resolved"
+            hx-post="/findings/{{ item.id }}/resolved?{{ query.url().split('?', 1)[1] }}" hx-target="#stage" hx-swap="innerHTML">
+      {% if item.done %}
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg>
+      {% endif %}
+    </button>
+    <div class="{% if item.done %}text-muted-foreground line-through{% endif %}">
+      <span class="block text-sm font-medium">{{ item.title }}</span>
+      <span class="block text-sm text-muted-foreground no-underline">{{ item.detail }}</span>
+      {% if item.sources %}
+      <div class="mt-1 flex flex-wrap gap-2">
+        {% for source in item.sources %}
+        <a class="text-xs text-primary no-underline hover:underline" href="{{ source.href }}" hx-get="/partials/drawer{{ source.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ source.href }}">{{ source.label }}</a>
+        {% endfor %}
       </div>
+      {% endif %}
     </div>
-    {% endfor %}
   </div>
   {% endfor %}
 </div>
+{% endfor %}

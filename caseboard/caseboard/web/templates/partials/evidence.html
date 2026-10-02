@@ -1,33 +1,32 @@
-<div class="pane-head">
+<div class="mb-6 flex items-end justify-between gap-4">
   <div>
-    <div class="pane-title">Case</div>
-    <div class="pane-sub">Money, people, and the places the papers disagree.</div>
+    <div class="text-base font-medium">Case</div>
+    <div class="text-sm text-muted-foreground">Money, people, and the places the papers disagree.</div>
   </div>
 </div>
 
-<section class="case-block">
-  <div class="case-head">
-    <h2>Expenses</h2>
+<section class="mb-8">
+  <div class="mb-3 flex items-center justify-between">
+    <h2 class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Expenses</h2>
     <form hx-post="/actions/bills" hx-target="#status" hx-swap="innerHTML">
-      <button class="btn btn-secondary" type="submit" {% if job.running or not gemini_ready or not clio_connected %}disabled{% endif %}>Read bills</button>
+      <button class="inline-flex items-center justify-center rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium shadow-xs hover:bg-accent disabled:opacity-40" type="submit" {% if job.running or not gemini_ready or not clio_connected %}disabled{% endif %}>Read bills</button>
     </form>
   </div>
   {% if casefile.expenses %}
-  <div class="cards">
+  <div class="grid gap-3 sm:grid-cols-2">
     {% for bill in casefile.expenses %}
-    <div class="blueprint fact-card">
-      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
-      <div class="card-head">
-        <span class="card-title">{{ bill.provider }}</span>
-        {% if bill.conflict %}<span class="tag conflict">Two totals</span>{% endif %}
+    <div class="fact-card rounded-lg border border-border bg-card p-4 shadow-sm">
+      <div class="flex items-center justify-between gap-2">
+        <span class="text-sm font-medium">{{ bill.provider }}</span>
+        {% if bill.conflict %}<span class="rounded-md bg-destructive px-1.5 py-0.5 text-[11px] font-medium text-destructive-foreground">Two totals</span>{% endif %}
       </div>
-      {% if bill.headline %}<div class="bill-amount">{{ bill.headline }}</div>{% endif %}
+      {% if bill.headline %}<div class="mt-2 font-serif text-xl">{{ bill.headline }}</div>{% endif %}
       {% for line in bill.lines %}
-      <div class="bill-line">
-        <span>{{ line.label }}</span>
-        <strong>{{ line.amount }}</strong>
+      <div class="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
+        <span class="text-muted-foreground">{{ line.label }}</span>
+        <strong class="font-medium">{{ line.amount }}</strong>
         {% if line.href %}
-        <a class="src-link" href="{{ line.href }}" hx-get="/partials/drawer{{ line.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ line.href }}">{{ line.source }}</a>
+        <a class="text-xs text-primary hover:underline" href="{{ line.href }}" hx-get="/partials/drawer{{ line.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ line.href }}">{{ line.source }}</a>
         {% endif %}
       </div>
       {% endfor %}
@@ -35,50 +34,49 @@
     {% endfor %}
   </div>
   {% else %}
-  <p class="empty">No bill amounts yet. Read the bills to copy the figures the pages state.</p>
+  <p class="py-6 text-sm text-muted-foreground">No bill amounts yet. Read the bills to copy the figures the pages state.</p>
   {% endif %}
 </section>
 
-<section class="case-block">
-  <div class="case-head"><h2>People</h2></div>
+<section class="mb-8">
+  <div class="mb-3"><h2 class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">People</h2></div>
   {% if casefile.people %}
   {% for group in casefile.people %}
-  <div class="people-role">{{ group.role }}</div>
-  <div class="people-grid">
+  <div class="mb-1 mt-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">{{ group.role }}</div>
+  <div class="grid gap-2 sm:grid-cols-2">
     {% for person in group.rows %}
-    <div class="person">
+    <div class="rounded-lg border border-border bg-card px-3 py-2">
       {% if person.href %}
-      <a href="{{ person.href }}" hx-get="/partials/drawer{{ person.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ person.href }}">{{ person.name }}</a>
+      <a class="text-sm font-medium hover:underline" href="{{ person.href }}" hx-get="/partials/drawer{{ person.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ person.href }}">{{ person.name }}</a>
       {% else %}
-      <strong>{{ person.name }}</strong>
+      <strong class="text-sm font-medium">{{ person.name }}</strong>
       {% endif %}
-      {% if person.meta %}<span class="person-meta">{{ person.meta }}</span>{% endif %}
-      {% if person.mark %}<span class="tag conflict">{{ person.mark }}</span>{% endif %}
+      {% if person.meta %}<span class="ml-2 text-xs text-muted-foreground">{{ person.meta }}</span>{% endif %}
+      {% if person.mark %}<span class="ml-2 rounded-md bg-destructive px-1.5 py-0.5 text-[11px] font-medium text-destructive-foreground">{{ person.mark }}</span>{% endif %}
     </div>
     {% endfor %}
   </div>
   {% endfor %}
   {% else %}
-  <p class="empty">No people on the file yet.</p>
+  <p class="py-6 text-sm text-muted-foreground">No people on the file yet.</p>
   {% endif %}
 </section>
 
-<section class="case-block">
-  <div class="case-head"><h2>Disagreements</h2></div>
+<section>
+  <div class="mb-3"><h2 class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Disagreements</h2></div>
   {% if casefile.disagreements %}
-  <div class="cards">
+  <div class="grid gap-3 sm:grid-cols-2">
     {% for item in casefile.disagreements %}
-    <div class="blueprint fact-card">
-      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
-      <div class="card-head">
-        <span class="card-title">{{ item.title }}</span>
-        <span class="tag conflict">≠</span>
+    <div class="fact-card rounded-lg border border-border bg-card p-4 shadow-sm">
+      <div class="flex items-center justify-between gap-2">
+        <span class="text-sm font-medium">{{ item.title }}</span>
+        <span class="rounded-md bg-destructive px-1.5 py-0.5 text-[11px] font-medium text-destructive-foreground">≠</span>
       </div>
       {% for row in item.sides %}
-      <div class="bill-line">
-        <span class="value">{{ row.value }}</span>
+      <div class="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
+        <span>{{ row.value }}</span>
         {% if row.href %}
-        <a class="src-link" href="{{ row.href }}" hx-get="/partials/drawer{{ row.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ row.href }}">{{ row.source }}</a>
+        <a class="text-xs text-primary hover:underline" href="{{ row.href }}" hx-get="/partials/drawer{{ row.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ row.href }}">{{ row.source }}</a>
         {% endif %}
       </div>
       {% endfor %}
@@ -86,6 +84,6 @@
     {% endfor %}
   </div>
   {% else %}
-  <p class="empty">Nothing in the compared facts disagrees.</p>
+  <p class="py-6 text-sm text-muted-foreground">Nothing in the compared facts disagrees.</p>
   {% endif %}
 </section>
