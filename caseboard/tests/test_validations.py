@@ -27,12 +27,34 @@ def test_sensitive_keys_stay_with_the_firm() -> None:
 
 
 def test_groups_mark_conflict_and_incomplete() -> None:
-    assert status_for(["Cedar Street", "I-95 Exit 16"]) == status_for(["Cedar Street", "I-95 Exit 16"])
     from caseboard.domain.enums import GroupStatus
 
     assert status_for(["Cedar Street", "I-95 Exit 16"]) == GroupStatus.conflict
     assert status_for(["12/21/1995", None]) == GroupStatus.incomplete
     assert status_for(["Nyack", "nyack"]) == GroupStatus.consistent
+    assert status_for(
+        ["Justin W. Sapini", "Justin Sapini", "JUSTIN SAPINI"],
+        key="patient.name",
+    ) == GroupStatus.consistent
+    assert status_for(
+        ["2023-04-23", "2023-04-23 08:30", "2023-04-23 08:30:00"],
+        key="accident.datetime",
+    ) == GroupStatus.consistent
+    assert status_for(["160000/2024", "160000-2024"], key="case.index_number") == GroupStatus.consistent
+    assert status_for(
+        [
+            "7 Valley Drive, Nanuet, NY 10954",
+            "7 Valley Drive, Nanuet, County of Rockland and State of New York",
+        ],
+        key="patient.address",
+    ) == GroupStatus.consistent
+    assert status_for(
+        [
+            "7 Valley Drive, Nanuet, NY 10954",
+            "20510 Cypress Plaza Parkway, Apt. 3211, Cypress, Texas 77433",
+        ],
+        key="patient.address",
+    ) == GroupStatus.conflict
 
 
 def test_runner_writes_findings(tmp_path: Path) -> None:
@@ -122,3 +144,61 @@ def test_runner_writes_findings(tmp_path: Path) -> None:
     assert "clio_not_firm_only" in codes
     assert "timeline_missing_date" in codes
     assert any(row["severity"] == Severity.sensitive.value for row in findings)
+
+
+def test_repeated_treatment_dates_are_not_a_conflict() -> None:
+    from caseboard.validate.checks import run_checks
+
+    visits = [
+        TimelineEvent(
+            id=f"pt-{day}",
+            date=day,
+            label="Physical therapy session",
+            kind=EventKind.treatment,
+            sensitivity=Sensitivity.provider_visible,
+            sensitivity_reason="Treating clinical fact",
+            origin="pdf",
+            evidence=[Evidence(document="pt.pdf", page=1, quote=day)],
+        )
+        for day in ("2023-07-06", "2023-07-13")
+    ]
+    accident = [
+        TimelineEvent(
+            id="acc-a",
+            date="2023-04-23",
+            label="Collision",
+            kind=EventKind.accident,
+            sensitivity=Sensitivity.provider_visible,
+            sensitivity_reason="Clinical or accident event",
+            origin="pdf",
+            evidence=[Evidence(document="a.pdf", page=1, quote="April 23")],
+        ),
+        TimelineEvent(
+            id="acc-b",
+            date="2023-04-23 08:30",
+            label="Collision",
+            kind=EventKind.accident,
+            sensitivity=Sensitivity.provider_visible,
+            sensitivity_reason="Clinical or accident event",
+            origin="pdf",
+            evidence=[Evidence(document="b.pdf", page=2, quote="8:30")],
+        ),
+    ]
+    findings = run_checks([], [], [], visits + accident, [])
+    assert [item.code for item in findings] == []
+
+
+def test_same_fact_keeps_every_document() -> None:
+    from caseboard.extract.compare import merge_same
+
+    rows = merge_same(
+        "patient.name",
+        [
+            ("Justin W. Sapini", [Evidence(document="a.pdf", page=1, quote="Justin W. Sapini")]),
+            ("JUSTIN SAPINI", [Evidence(document="b.pdf", page=3, quote="JUSTIN SAPINI")]),
+        ],
+    )
+    assert len(rows) == 1
+    display, cites = rows[0]
+    assert display == "Justin W. Sapini"
+    assert [cite.document for cite in cites] == ["a.pdf", "b.pdf"]

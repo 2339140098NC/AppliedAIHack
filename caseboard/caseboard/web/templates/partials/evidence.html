@@ -48,10 +48,16 @@
   <thead><tr><th>Fact</th><th>What the page says</th><th>Source</th><th>Who can see it</th></tr></thead>
   <tbody>
     {% for fact in facts %}
-    <tr hx-get="/partials/drawer{{ fact.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ fact.href }}">
+    <tr>
       <td style="color:var(--color-neutral-700);font-size:13px">{{ fact.fact }}</td>
       <td style="font-weight:500">{{ fact.value }}</td>
-      <td style="font-size:12px;color:var(--color-accent-700);white-space:nowrap">{{ fact.src }}</td>
+      <td>
+        <div class="src-row">
+          {% for source in fact.sources %}
+          <a class="src-link" href="{{ source.href }}" hx-get="/partials/drawer{{ source.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ source.href }}">{{ source.label }}</a>
+          {% endfor %}
+        </div>
+      </td>
       <td style="font-size:12px;color:var(--color-neutral-700)">{{ fact.vis }}</td>
     </tr>
     {% endfor %}

@@ -12,6 +12,7 @@ from caseboard.domain.models import (
     SourceFile,
     TimelineEvent,
 )
+from caseboard.extract.compare import merge_same
 from caseboard.extract.stamp import extract_stamp
 from caseboard.store.documents import DocumentStore
 from caseboard.web.workspace.query import PROVIDERS, WorkspaceQuery
@@ -174,21 +175,20 @@ class Workspace:
             entries = [entry for entry in group.entries if query.firm or entry.sensitivity == Sensitivity.provider_visible]
             if not entries:
                 continue
+            merged = merge_same(group.facet_key, [(entry.value, entry.evidence) for entry in entries])
             rows = []
-            for index, entry in enumerate(entries):
-                evidence = entry.evidence[0] if entry.evidence else None
+            for index, (value, cites) in enumerate(merged):
                 rows.append({
-                    "letter": _entry_letter(index) if len(entries) > 1 else "·",
-                    "value": entry.value or "Left blank",
-                    "blank": not entry.value,
-                    "conflict": group.status == GroupStatus.conflict,
+                    "letter": _entry_letter(index) if len(merged) > 1 else "·",
+                    "value": value or "Left blank",
+                    "blank": not value,
+                    "conflict": group.status == GroupStatus.conflict and len(merged) > 1,
                     "sources": [
                         {
                             "label": self._source_label(cite.document, cite.page, query),
                             "href": query.url(document=cite.document, page=cite.page, quote=cite.quote, sel=group.id, tab="evidence"),
                         }
-                        for cite in entry.evidence
-                        if cite.document
+                        for cite in cites
                     ],
                 })
             cards.append({
@@ -205,38 +205,69 @@ class Workspace:
         return cards
 
     def _facts(self, query: WorkspaceQuery) -> list[dict]:
+        visible = [
+            facet
+            for facet in self.facets
+            if query.firm or facet.sensitivity == Sensitivity.provider_visible
+        ]
+        by_key: dict[str, list[Facet]] = {}
+        for facet in visible:
+            by_key.setdefault(facet.facet_key, []).append(facet)
         rows = []
-        for facet in self.facets:
-            if not query.firm and facet.sensitivity != Sensitivity.provider_visible:
-                continue
-            evidence = facet.evidence[0] if facet.evidence else None
-            if not evidence:
-                continue
-            who = "Firm only"
-            if facet.sensitivity == Sensitivity.provider_visible:
-                who = _provider_name(_blob(facet.authored_by, facet.facet_key, evidence.document)) or "Shared"
-            rows.append({
-                "fact": _title(facet.facet_key),
-                "value": facet.value or "Left blank",
-                "src": self._source_label(evidence.document, evidence.page, query),
-                "vis": who,
-                "href": query.url(document=evidence.document, page=evidence.page, quote=evidence.quote, sel=facet.id, tab="evidence", ev="all"),
-            })
+        for key in sorted(by_key):
+            facets = by_key[key]
+            for value, cites in merge_same(key, [(facet.value, facet.evidence) for facet in facets]):
+                if not cites:
+                    continue
+                shared = any(facet.sensitivity == Sensitivity.provider_visible for facet in facets)
+                who = "Firm only"
+                if shared:
+                    who = _provider_name(_blob(key, cites[0].document)) or "Shared"
+                rows.append({
+                    "fact": _title(key),
+                    "value": value or "Left blank",
+                    "vis": who,
+                    "sources": [
+                        {
+                            "label": self._source_label(cite.document, cite.page, query),
+                            "href": query.url(
+                                document=cite.document,
+                                page=cite.page,
+                                quote=cite.quote,
+                                sel=facets[0].id,
+                                tab="evidence",
+                                ev="all",
+                            ),
+                        }
+                        for cite in cites
+                    ],
+                })
         return rows
 
     def _findings(self) -> list[dict]:
         rows = []
         for finding in sorted(self.findings, key=lambda item: item.message):
-            evidence = finding.evidence[0] if finding.evidence else None
             title, _, detail = finding.message.partition(". ")
+            seen: set[tuple[str, int]] = set()
+            sources = []
+            for cite in finding.evidence:
+                mark = (cite.document, cite.page)
+                if not cite.document or mark in seen:
+                    continue
+                seen.add(mark)
+                sources.append({
+                    "label": self._source_label(cite.document, cite.page, self.query),
+                    "href": self.query.url(document=cite.document, page=cite.page, quote=cite.quote, sel=finding.id, tab="todo"),
+                })
             rows.append({
                 "id": finding.id,
                 "severity": finding.severity.value,
                 "title": title,
                 "detail": detail or finding.code,
                 "done": finding.resolved,
-                "src": self._source_label(evidence.document, evidence.page, self.query) if evidence else "",
-                "href": self.query.url(document=evidence.document, page=evidence.page, quote=evidence.quote, sel=finding.id, tab="todo") if evidence else "",
+                "src": sources[0]["label"] if sources else "",
+                "href": sources[0]["href"] if sources else "",
+                "sources": sources,
             })
         return rows
 

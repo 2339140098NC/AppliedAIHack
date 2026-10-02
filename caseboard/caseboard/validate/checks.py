@@ -11,9 +11,11 @@ from caseboard.domain.models import (
     SourceFile,
     TimelineEvent,
 )
+from caseboard.extract.compare import calendar_day
 from caseboard.extract.sensitivity import LEGAL_KINDS
 
 _DATED_KINDS = {"accident", "surgery", "filing"}
+_ONCE = {"accident", "surgery", "filing", "demand"}
 _SECRET_KEYS = ("ssn", "license_number")
 _SECRET_WORDS = ("medicaid", "social security", " hiv", "policy number", "settlement")
 
@@ -157,10 +159,10 @@ def _timeline(events: list[TimelineEvent]) -> list[Finding]:
             )
     by_label: dict[str, list[TimelineEvent]] = {}
     for event in events:
-        if event.origin == "pdf" and event.date:
+        if event.origin == "pdf" and event.date and event.kind.value in _ONCE:
             by_label.setdefault(event.label.strip().lower(), []).append(event)
     for label, group in by_label.items():
-        dates = {event.date for event in group}
+        dates = {calendar_day(event.date) or event.date for event in group}
         if len(dates) > 1:
             findings.append(
                 _finding(
