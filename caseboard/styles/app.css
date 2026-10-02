@@ -202,7 +202,7 @@
 
 #drawer.is-open { pointer-events: auto; }
 #drawer.is-open .drawer-scrim { opacity: 1; pointer-events: auto; }
-#drawer.is-open #drawer-panel { transform: translateX(0); }
+#drawer.is-open #drawer-panel { translate: 0 0; }
 .is-selected { background-color: var(--accent); }
 .is-urgent { background-color: color-mix(in oklch, var(--secondary) 45%, var(--card)); }
 .is-held { opacity: 0.55; }
