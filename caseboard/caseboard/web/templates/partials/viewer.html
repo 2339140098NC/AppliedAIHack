@@ -17,7 +17,13 @@
   </div>
 </div>
 {% endif %}
-{% if viewer.document %}
+{% if viewer.record %}
+<div class="page-stage">
+  <div class="page-sheet record-sheet">
+    <div class="record-body">{{ viewer.body }}</div>
+  </div>
+</div>
+{% elif viewer.document %}
 <div class="toolbar">
   <a class="btn btn-icon btn-secondary" href="{{ viewer.prev }}" hx-get="/partials/drawer{{ viewer.prev[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ viewer.prev }}" aria-label="Previous page" style="width:30px;height:30px">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m15 18-6-6 6-6"></path></svg>
@@ -43,7 +49,7 @@
     {% elif not viewer.image %}
     <p class="empty">Select a source to open its page.</p>
     {% endif %}
-    <div class="page-footer">{{ viewer.footer }}</div>
+    {% if viewer.footer %}<div class="page-footer">{{ viewer.footer }}</div>{% endif %}
   </div>
 </div>
 {% else %}

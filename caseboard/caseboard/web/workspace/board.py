@@ -5,6 +5,7 @@ from pathlib import Path
 
 from caseboard.domain.enums import DocType, GroupStatus, Sensitivity
 from caseboard.domain.models import (
+    Communication,
     ComparisonGroup,
     Facet,
     Finding,
@@ -38,6 +39,10 @@ class Workspace:
         self.groups = [ComparisonGroup.model_validate(row) for row in store.list_type(DocType.group)]
         self.events = [TimelineEvent.model_validate(row) for row in store.list_type(DocType.timeline_event)]
         self.findings = [Finding.model_validate(row) for row in store.list_type(DocType.validation)]
+        self._comms = {
+            item.clio_id: item
+            for item in (Communication.model_validate(row) for row in store.list_type(DocType.communication))
+        }
         self._conflict_pages = {
             (cite.document, cite.page)
             for group in self.groups
@@ -321,6 +326,10 @@ class Workspace:
 
     def _viewer(self, query: WorkspaceQuery) -> dict:
         document = query.document
+        if document.startswith("clio:") and query.firm:
+            return self._communication_viewer(query, document)
+        if document.startswith("clio:"):
+            document = ""
         page = query.page or 1
         if not query.firm:
             owned = self._owned_segments(query.provider)
@@ -386,6 +395,38 @@ class Workspace:
             "seg_label": segment.kind.value.replace("_", " ").title() if segment else "Page",
             "quotes": quotes,
             "footer": str(page - lo + 1),
+            "record": False,
+            "body": "",
+        }
+
+    def _communication_viewer(self, query: WorkspaceQuery, document: str) -> dict:
+        record = self._comms.get(document.removeprefix("clio:"))
+        kind = _KIND.get(record.source.value, "Record") if record else "Record"
+        when = _pretty_date(record.occurred_on or "") if record and record.occurred_on else ""
+        title = (record.subject.strip() if record and record.subject.strip() else kind) if record else "Record not found"
+        if record and record.body.strip():
+            body = record.body
+        elif record:
+            body = "This record has no text."
+        else:
+            body = "This record is not in the store."
+        return {
+            "title": title,
+            "sub": " · ".join(part for part in (kind, when) if part),
+            "banner": "",
+            "show_name": True,
+            "document": document,
+            "page": 1,
+            "image": False,
+            "chips": [],
+            "page_label": "",
+            "prev": "",
+            "next": "",
+            "seg_label": kind,
+            "quotes": [],
+            "footer": "",
+            "record": True,
+            "body": body,
         }
 
     def _quotes(self, document: str, page: int, query: WorkspaceQuery) -> list[dict]:
