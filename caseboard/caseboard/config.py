@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     corpus_dir: Path = DEFAULT_CORPUS
     db_path: Path = DATA / "caseboard.sqlite"
     token_path: Path = DATA / "clio-token.json"
+    docs_dir: Path = DATA / "clio-pdfs"
     compress_dir: Path = DATA / "compressed"
 
     @field_validator("corpus_dir", mode="before")

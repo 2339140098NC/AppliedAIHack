@@ -1,7 +1,8 @@
-"""Read phone logs, emails, notes, and messages from Clio Manage."""
+"""Read phone logs, emails, notes, messages, and documents from Clio Manage."""
 
 import secrets
 import time
+from pathlib import Path
 from urllib.parse import urlencode
 
 import httpx
@@ -14,6 +15,7 @@ FIELDS_COMM = "id,subject,body,type,date,received_at"
 FIELDS_NOTE = "id,subject,detail,date,type"
 FIELDS_CONVO = "id,subject"
 FIELDS_MESSAGE = "id,body,created_at"
+FIELDS_DOCUMENT = "id,name,latest_document_version{filename,content_type,fully_uploaded}"
 
 
 class ClioClient:
@@ -94,6 +96,37 @@ class ClioClient:
             )
         return matter_id, communications, notes, messages
 
+    def list_documents(self, matter_id: str) -> list[dict]:
+        return self._pages(
+            "/api/v4/documents.json",
+            {"matter_id": matter_id, "fields": FIELDS_DOCUMENT, "limit": 200},
+        )
+
+    def download_pdf(self, document_id: str, dest: Path) -> None:
+        """Follow Clio's 303 and write the PDF. The file host is not Clio."""
+        response = self._request("GET", f"/api/v4/documents/{document_id}/download.json")
+        location = response.headers.get("location")
+        if response.status_code not in {301, 302, 303, 307, 308} or not location:
+            raise CaseboardError(f"Clio did not return a file for document {document_id}")
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        temporary = dest.with_suffix(".part")
+        header = b""
+        try:
+            with httpx.Client(timeout=120, trust_env=False, follow_redirects=True) as http:
+                with http.stream("GET", location) as fetched:
+                    if fetched.status_code >= 400:
+                        raise CaseboardError(f"Clio file download failed ({fetched.status_code})")
+                    with temporary.open("wb") as handle:
+                        for chunk in fetched.iter_bytes():
+                            if len(header) < 5:
+                                header += chunk
+                            handle.write(chunk)
+            if not header.startswith(b"%PDF-"):
+                raise CaseboardError(f"Document {document_id} is not a PDF")
+            temporary.replace(dest)
+        finally:
+            temporary.unlink(missing_ok=True)
+
     def _matter_id(self) -> str:
         if self._settings.clio_matter_id.strip():
             return self._settings.clio_matter_id.strip()
@@ -143,7 +176,7 @@ class ClioClient:
             raise CaseboardError(
                 "Clio accepted the login but this token cannot read data. "
                 "In the Clio developer app, turn on read access for Matters, "
-                "Communications, and Notes, then connect again."
+                "Communications, Notes, and Documents, then connect again."
             )
         if response.status_code >= 400:
             raise CaseboardError(f"Clio {response.status_code}: {response.text[:300]}")

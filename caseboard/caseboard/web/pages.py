@@ -9,13 +9,13 @@ from caseboard.config import Settings
 
 
 def find_pdf(settings: Settings, filename: str) -> Path:
-    """Resolve a corpus PDF by its stored file name."""
+    """Resolve a stored Clio PDF by its file name."""
     if not filename or Path(filename).name != filename or not filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=404)
-    matches = [path for path in settings.corpus_dir.rglob(filename) if path.is_file()]
-    if len(matches) != 1:
+    path = settings.docs_dir / filename
+    if not path.is_file():
         raise HTTPException(status_code=404)
-    return matches[0]
+    return path
 
 
 def render_page(path: Path, page_number: int) -> tuple[bytes, bool, int]:

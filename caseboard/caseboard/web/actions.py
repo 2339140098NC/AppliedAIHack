@@ -33,12 +33,12 @@ class Actions:
             corpus = CorpusExtractor(
                 self._store,
                 extractor,
-                self._settings.corpus_dir,
+                self._settings.docs_dir,
                 self._settings.compress_dir,
             )
             files = corpus.pdfs()
             if not files:
-                raise CaseboardError(f"No PDFs in {self._settings.corpus_dir}")
+                raise CaseboardError("No PDFs stored yet. Sync Clio first.")
             problems = corpus.run(self._job.update)
             count = ValidationRunner(self._store).run()
             if problems:
@@ -53,9 +53,15 @@ class Actions:
 
     def sync(self) -> None:
         try:
-            saved = ClioSync(self._store, self._clio).run()
+            communications, pdfs = ClioSync(
+                self._store,
+                self._clio,
+                self._settings.docs_dir,
+            ).run(self._job.update)
             count = ValidationRunner(self._store).run()
-            self._job.finish(f"Synced {saved} Clio communications. {count} findings.")
+            self._job.finish(
+                f"Stored {pdfs} PDFs and {communications} Clio records. {count} findings."
+            )
         except Exception as exc:
             self._job.finish("Clio sync failed", error=str(exc))
 

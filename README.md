@@ -57,8 +57,8 @@ The process has to listen on the same host and port as `CLIO_REDIRECT_URI`. `tas
 
 **Firm** is the default. Timeline, Evidence, and To-do are the three tabs. The page on the right is the cited PDF.
 
-- **Extract PDFs** sends each corpus PDF to Gemini and stores segments, facets, and timeline events. A long scan is compressed first. Page count stays the same.
-- **Sync Clio** pulls phone calls, emails, notes, and conversation messages for the matter. Every Clio row is firm-only.
+- **Sync Clio** pulls the matter's PDFs onto disk and into the store, plus phone calls, emails, notes, and messages. Every Clio communication is firm-only. The board reads that stored copy.
+- **Extract PDFs** sends each stored Clio PDF to Gemini and saves the facets, segments, and timeline events in the same database. A long scan is compressed first. Page count stays the same.
 - **Run validations** rebuilds the to-do list from the store. Checking an item off keeps that finding resolved if the same check comes back.
 
 **Provider** drops the firm tabs, the action buttons, and anything marked firm-only. Pick Montefiore Nyack, Advanced Rockland Chiropractic, SportsCare, or New Horizon. That view only includes clinical records that belong to the selected provider.

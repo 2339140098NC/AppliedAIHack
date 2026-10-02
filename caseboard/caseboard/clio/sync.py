@@ -1,8 +1,10 @@
-"""Write Clio communications into the document store as firm-only records."""
+"""Write Clio communications and PDFs into the document store."""
 
 import uuid
+from pathlib import Path
 
 from caseboard.clio.client import ClioClient
+from caseboard.clio.documents import MatterPdfs
 from caseboard.domain.enums import CommSource, DocType, EventKind, Sensitivity
 from caseboard.domain.models import Communication, Evidence, TimelineEvent
 from caseboard.store.documents import DocumentStore
@@ -14,11 +16,12 @@ _TYPE_SOURCE = {
 
 
 class ClioSync:
-    def __init__(self, store: DocumentStore, client: ClioClient) -> None:
+    def __init__(self, store: DocumentStore, client: ClioClient, docs_dir: Path) -> None:
         self._store = store
         self._client = client
+        self._docs_dir = docs_dir
 
-    def run(self) -> int:
+    def run(self, on_progress) -> tuple[int, int]:
         matter_id, communications, notes, messages = self._client.sync_matter()
         self._store.delete_type(DocType.communication)
         self._store.delete_type(DocType.timeline_event, origin="clio")
@@ -63,7 +66,8 @@ class ClioSync:
             event_rows.append((event.id, event))
         self._store.put_many(DocType.communication, comm_rows)
         self._store.put_many(DocType.timeline_event, event_rows)
-        return len(comm_rows)
+        pdfs = MatterPdfs(self._client, self._store, self._docs_dir).pull(matter_id, on_progress)
+        return len(comm_rows), pdfs
 
 
 def _pair(

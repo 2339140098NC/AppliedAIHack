@@ -26,7 +26,6 @@ def _context(request: Request, *, refresh: bool = False) -> dict:
         {
             "gemini_ready": settings.gemini_ready,
             "clio_ready": settings.clio_ready,
-            "clio_connected": request.app.state.clio.connected(),
             "job": request.app.state.job.snapshot(),
             "refresh": refresh,
         }
@@ -51,7 +50,7 @@ def viewer(request: Request) -> HTMLResponse:
 
 @router.get("/partials/status", response_class=HTMLResponse)
 def status(request: Request) -> HTMLResponse:
-    return TEMPLATES.TemplateResponse(request, "partials/status.html", _context(request))
+    return TEMPLATES.TemplateResponse(request, "partials/status.html", _status_context(request))
 
 
 @router.get("/pages")
@@ -90,7 +89,11 @@ def validate(request: Request) -> HTMLResponse:
         request.app.state.actions.validate()
     except CaseboardError as exc:
         return HTMLResponse(_error(exc), status_code=409)
-    return TEMPLATES.TemplateResponse(request, "partials/status.html", _context(request, refresh=True))
+    return TEMPLATES.TemplateResponse(
+        request,
+        "partials/status.html",
+        _status_context(request, refresh=True),
+    )
 
 
 @router.get("/clio/connect", response_model=None)
@@ -110,6 +113,10 @@ def clio_callback(request: Request, code: str = "", state: str = "") -> Redirect
     except CaseboardError as exc:
         return HTMLResponse(_error(exc), status_code=400)
     return RedirectResponse("/", status_code=303)
+
+
+def _status_context(request: Request, *, refresh: bool = False) -> dict:
+    return {"job": request.app.state.job.snapshot(), "refresh": refresh}
 
 
 def _start(request: Request, name: str, target) -> HTMLResponse:
