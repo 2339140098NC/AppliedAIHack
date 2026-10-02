@@ -103,7 +103,7 @@
       if (finished) {
         htmx.ajax("GET", "/partials/stage" + search, {target: "#stage", swap: "innerHTML"});
       }
-      if ((finished || running) && document.getElementById("drawer").classList.contains("is-open")) {
+      if (finished && document.getElementById("drawer").classList.contains("is-open")) {
         htmx.ajax("GET", "/partials/drawer" + search, {target: "#drawer-panel", swap: "innerHTML"});
       }
     });

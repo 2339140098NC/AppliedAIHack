@@ -4,7 +4,7 @@ from datetime import date
 from pathlib import Path
 
 from caseboard.domain.enums import DocType, EventKind, SegmentKind, Sensitivity
-from caseboard.domain.models import CaseSummary, Evidence, Facet, Segment, TimelineEvent
+from caseboard.domain.models import CaseSummary, Evidence, Facet, Segment, SourceFile, TimelineEvent
 from caseboard.store.documents import DocumentStore
 from caseboard.validate.checks import run_checks
 from caseboard.validate.runner import ValidationRunner
@@ -59,6 +59,17 @@ def test_case_age_counts_whole_months() -> None:
     assert case_age("2023-04-23", date(2026, 10, 2)) == "3 yr 5 mo"
     assert case_age("2026-09-02", date(2026, 10, 2)) == "1 mo"
     assert case_age("", date(2026, 10, 2)) == ""
+
+
+def test_file_sections_stay_in_page_order(tmp_path: Path) -> None:
+    store = DocumentStore(tmp_path / "case.sqlite")
+    store.put(DocType.source, "packet.pdf", SourceFile(filename="packet.pdf", page_count=11))
+    store.put(DocType.segment, "other", Segment(id="other", source_file="packet.pdf", page_start=7, page_end=11, kind=SegmentKind.other))
+    store.put(DocType.segment, "scene", Segment(id="scene", source_file="packet.pdf", page_start=3, page_end=6, kind=SegmentKind.incident_report))
+    store.put(DocType.segment, "disc", Segment(id="disc", source_file="packet.pdf", page_start=1, page_end=2, kind=SegmentKind.discovery))
+    chips = Workspace(store, _query(document="packet.pdf", page="1", drawer="1")).context()["viewer"]["chips"]
+    assert [chip["label"] for chip in chips] == ["Discovery", "Incident Report", "Other"]
+    assert [chip["active"] for chip in chips] == [True, False, False]
 
 
 def test_named_stories_replace_generic_conflicts() -> None:

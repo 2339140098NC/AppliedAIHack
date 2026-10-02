@@ -515,17 +515,7 @@ class Workspace:
             court_file = "__doc-" in document or "nyscef" in document.lower()
             if court_file and segment and (segment.nyscef_doc or segment.nyscef_index):
                 banner = f"NYSCEF DOC. NO. {segment.nyscef_doc or '—'} · INDEX NO. {segment.nyscef_index or '—'}"
-        chips = []
-        if query.firm:
-            file_segments = [item for item in self.segments if item.source_file == document]
-            if len(file_segments) > 1:
-                for item in file_segments:
-                    chips.append({
-                        "label": item.kind.value.replace("_", " ").title(),
-                        "range": _page_span(item.page_start, item.page_end),
-                        "active": item.page_start <= page <= item.page_end,
-                        "href": query.url(document=document, page=item.page_start, quote=""),
-                    })
+        chips = _file_chips(self.segments, document, page, query) if query.firm else []
         quotes = self._quotes(document, page, query)
         return {
             "title": title,
@@ -681,6 +671,27 @@ def _provider_name(blob: str) -> str:
 
 def _blob(*parts: str) -> str:
     return " ".join(part for part in parts if part)
+
+
+def _file_chips(segments: list[Segment], document: str, page: int, query: WorkspaceQuery) -> list[dict]:
+    """Sections of one PDF, in page order. One section is highlighted."""
+    if not document:
+        return []
+    rows = [item for item in segments if item.source_file == document]
+    rows.sort(key=lambda item: (item.page_start, item.page_end, item.kind.value, item.id))
+    if len(rows) < 2:
+        return []
+    matches = [item for item in rows if item.page_start <= page <= item.page_end]
+    chosen = min(matches, key=lambda item: (item.page_end - item.page_start, item.page_start, item.id)) if matches else None
+    return [
+        {
+            "label": item.kind.value.replace("_", " ").title(),
+            "range": _page_span(item.page_start, item.page_end),
+            "active": chosen is not None and item.id == chosen.id,
+            "href": query.url(document=document, page=item.page_start, quote=""),
+        }
+        for item in rows
+    ]
 
 
 def _summary_line(rows: list[dict]) -> str:
