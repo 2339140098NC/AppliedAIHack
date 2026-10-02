@@ -26,6 +26,11 @@ from caseboard.store.documents import DocumentStore
 _HIGH_RES_BITS = ("photo-id", "hipaa", "medical-records", "medical-bills")
 
 
+def high_resolution(filename: str) -> bool:
+    """Scans and ID pages need a higher media resolution than text filings."""
+    return any(bit in filename.lower() for bit in _HIGH_RES_BITS)
+
+
 class CorpusExtractor:
     """Extract every PDF in the corpus and replace the PDF-derived documents."""
 
@@ -72,9 +77,46 @@ class CorpusExtractor:
     def finish(self) -> None:
         self._rebuild_groups()
 
+    def forget(self, filename: str) -> None:
+        """Drop one PDF's source row and the facets, segments, and events that cite it."""
+        if not filename:
+            return
+        self._store.delete_ids(DocType.segment, _matching(self._store, DocType.segment, lambda row: row.get("source_file") == filename))
+        self._store.delete_ids(DocType.facet, _matching(self._store, DocType.facet, lambda row: _cites(row, filename)))
+        self._store.delete_ids(
+            DocType.timeline_event,
+            _matching(
+                self._store,
+                DocType.timeline_event,
+                lambda row: row.get("origin") == "pdf" and _cites(row, filename),
+            ),
+        )
+        self._store.delete_ids(
+            DocType.source,
+            _matching(self._store, DocType.source, lambda row: row.get("filename") == filename),
+        )
+
+    def remember(
+        self,
+        document_id: str,
+        version_id: str,
+        filename: str,
+        extracted: PdfExtract,
+    ) -> None:
+        """Replace one file's extract. The version id is what the next sync compares."""
+        self.forget(filename)
+        source = SourceFile(
+            filename=filename,
+            page_count=_page_span(extracted),
+            clio_document_id=document_id,
+            clio_version_id=version_id,
+        )
+        self._store.put(DocType.source, filename, source)
+        self._store_extract(filename, extracted)
+
     def _one(self, path: Path, clio_document_id: str) -> None:
         prepared = prepare_pdf(path, self._compress_dir)
-        high = any(bit in path.name.lower() for bit in _HIGH_RES_BITS)
+        high = high_resolution(path.name)
         extracted = self._extractor.extract_pdf(prepared, high_resolution=high)
         count = page_count(path)
         source = SourceFile(
@@ -160,3 +202,21 @@ def _blank_to_none(value: str | None) -> str | None:
     if value is None or not value.strip():
         return None
     return value.strip()
+
+
+def _cites(row: dict, filename: str) -> bool:
+    return any(cite.get("document") == filename for cite in row.get("evidence") or [])
+
+
+def _matching(store: DocumentStore, doc_type: DocType, predicate) -> list[str]:
+    return [str(row["id"]) for row in store.list_type(doc_type) if predicate(row)]
+
+
+def _page_span(extracted: PdfExtract) -> int:
+    pages = 0
+    for item in extracted.segments:
+        pages = max(pages, item.page_start, item.page_end)
+    for item in [*extracted.facets, *extracted.events]:
+        for cite in item.evidence:
+            pages = max(pages, cite.page)
+    return pages

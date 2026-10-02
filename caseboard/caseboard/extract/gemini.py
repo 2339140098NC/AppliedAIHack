@@ -45,15 +45,22 @@ class GeminiExtractor:
             http_options=types.HttpOptions(timeout=600_000),
         )
 
+    def extract_url(self, file_uri: str, filename: str, *, high_resolution: bool) -> PdfExtract:
+        """Read a PDF from a URL Gemini can fetch. Nothing is uploaded or stored."""
+        response = self._client.models.generate_content(
+            model=self._model,
+            contents=[
+                types.Part.from_uri(file_uri=file_uri, mime_type="application/pdf"),
+                PROMPT,
+            ],
+            config=_config(high_resolution),
+        )
+        return _parsed(response, filename)
+
     def extract_pdf(self, path: Path, *, high_resolution: bool) -> PdfExtract:
         uploaded = self._client.files.upload(file=str(path))
         try:
             ready = self._wait(uploaded)
-            resolution = (
-                types.MediaResolution.MEDIA_RESOLUTION_HIGH
-                if high_resolution
-                else types.MediaResolution.MEDIA_RESOLUTION_MEDIUM
-            )
             response = self._client.models.generate_content(
                 model=self._model,
                 contents=[
@@ -63,18 +70,9 @@ class GeminiExtractor:
                     ),
                     PROMPT,
                 ],
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                    response_json_schema=PdfExtract.model_json_schema(),
-                    media_resolution=resolution,
-                    temperature=0,
-                ),
+                config=_config(high_resolution),
             )
-            if response.parsed is not None:
-                return PdfExtract.model_validate(response.parsed)
-            if not response.text:
-                raise CaseboardError(f"Gemini returned an empty extract for {path.name}")
-            return PdfExtract.model_validate_json(response.text)
+            return _parsed(response, path.name)
         finally:
             if uploaded.name:
                 self._client.files.delete(name=uploaded.name)
@@ -91,3 +89,25 @@ class GeminiExtractor:
         if not current.uri:
             raise CaseboardError("Gemini did not return a file URI")
         return current
+
+
+def _config(high_resolution: bool) -> types.GenerateContentConfig:
+    resolution = (
+        types.MediaResolution.MEDIA_RESOLUTION_HIGH
+        if high_resolution
+        else types.MediaResolution.MEDIA_RESOLUTION_MEDIUM
+    )
+    return types.GenerateContentConfig(
+        response_mime_type="application/json",
+        response_json_schema=PdfExtract.model_json_schema(),
+        media_resolution=resolution,
+        temperature=0,
+    )
+
+
+def _parsed(response: types.GenerateContentResponse, filename: str) -> PdfExtract:
+    if response.parsed is not None:
+        return PdfExtract.model_validate(response.parsed)
+    if not response.text:
+        raise CaseboardError(f"Gemini returned an empty extract for {filename}")
+    return PdfExtract.model_validate_json(response.text)

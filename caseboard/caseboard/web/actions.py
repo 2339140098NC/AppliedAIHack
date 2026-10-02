@@ -1,10 +1,7 @@
-"""Buttons: extract Clio PDFs, sync communications, and rerun validations."""
+"""Buttons: extract changed Clio PDFs, sync communications, and rerun validations."""
 
-import tempfile
-from pathlib import Path
-
+from caseboard.clio.changes import PdfChanges
 from caseboard.clio.client import ClioClient
-from caseboard.clio.documents import stored_pdfs
 from caseboard.clio.sync import ClioSync
 from caseboard.config import Settings
 from caseboard.errors import CaseboardError
@@ -30,53 +27,24 @@ class Actions:
 
     def extract(self) -> None:
         try:
-            chosen = stored_pdfs(self._clio.list_documents(self._clio.matter_id()))
-            if not chosen:
-                raise CaseboardError("Clio has no PDFs for this matter.")
-            extractor = GeminiExtractor(
-                self._settings.gemini_api_key,
-                self._settings.gemini_model,
-            )
-            corpus = CorpusExtractor(
-                self._store,
-                extractor,
-                self._settings.docs_dir,
-                self._settings.compress_dir,
-            )
-            corpus.begin()
-            problems = self._extract_each(corpus, chosen)
-            corpus.finish()
+            changed, removed, unchanged, problems = self._pdf_changes()
             count = ValidationRunner(self._store).run()
-            if problems:
-                self._job.finish(
-                    f"Extracted with {len(problems)} file errors. {count} findings.",
-                    error="; ".join(problems),
-                )
-                return
-            self._job.finish(f"Extracted {len(chosen)} PDFs from Clio. {count} findings.")
+            self._job.finish(
+                _pdf_message(changed, removed, unchanged, count),
+                error="; ".join(problems),
+            )
         except Exception as exc:
             self._job.finish("Extract failed", error=str(exc))
 
-    def _extract_each(self, corpus: CorpusExtractor, chosen: list[tuple[str, str]]) -> list[str]:
-        problems: list[str] = []
-        with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary)
-            for index, (document_id, filename) in enumerate(chosen, start=1):
-                self._job.update(f"Extracting {index}/{len(chosen)} {filename}")
-                dest = root / filename
-                try:
-                    self._clio.download_pdf(document_id, dest)
-                    corpus.ingest(dest, document_id)
-                except Exception as exc:
-                    problems.append(f"{filename}: {exc}")
-        return problems
-
     def sync(self) -> None:
         try:
-            communications, pdfs = ClioSync(self._store, self._clio).run(self._job.update)
+            communications = ClioSync(self._store, self._clio).run(self._job.update)
+            changed, removed, unchanged, problems = self._pdf_changes()
             count = ValidationRunner(self._store).run()
             self._job.finish(
-                f"Listed {pdfs} Clio PDFs and stored {communications} records. {count} findings."
+                f"Stored {communications} records. "
+                + _pdf_message(changed, removed, unchanged, count),
+                error="; ".join(problems),
             )
         except Exception as exc:
             self._job.finish("Clio sync failed", error=str(exc))
@@ -85,3 +53,25 @@ class Actions:
         if self._job.snapshot()["running"]:
             raise CaseboardError("Wait for the current job to finish")
         return ValidationRunner(self._store).run()
+
+    def _pdf_changes(self) -> tuple[int, int, int, list[str]]:
+        extractor = GeminiExtractor(
+            self._settings.gemini_api_key,
+            self._settings.gemini_model,
+        )
+        corpus = CorpusExtractor(
+            self._store,
+            extractor,
+            self._settings.docs_dir,
+            self._settings.compress_dir,
+        )
+        return PdfChanges(self._clio, self._store, extractor, corpus).run(self._job.update)
+
+
+def _pdf_message(changed: int, removed: int, unchanged: int, findings: int) -> str:
+    if changed == 0 and removed == 0:
+        return f"PDF list unchanged ({unchanged} saved). {findings} findings."
+    return (
+        f"Extracted {changed} changed PDFs, removed {removed}, "
+        f"{unchanged} unchanged. {findings} findings."
+    )

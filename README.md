@@ -42,7 +42,7 @@ Copy `caseboard/.env.example` to `caseboard/.env`. None of those values are comm
 
 | Variable | What it does |
 |---|---|
-| `GEMINI_API_KEY` | Enables **Extract PDFs**. The model is `gemini-3.8-flash`. |
+| `GEMINI_API_KEY` | Used when **Extract PDFs** or **Sync Clio** sends a file URL to Gemini. The model is `gemini-3.8-flash`. |
 | `CLIO_CLIENT_ID` / `CLIO_CLIENT_SECRET` | Clio Manage app key and secret. |
 | `CLIO_REDIRECT_URI` | Must match the redirect registered on the Clio app, including port and path. The app accepts `/callback` and `/clio/callback`. |
 | `CLIO_REGION_HOST` | `https://app.clio.com` for the US firm. |
@@ -57,8 +57,8 @@ The process has to listen on the same host and port as `CLIO_REDIRECT_URI`. `tas
 
 **Firm** is the default. Timeline, Evidence, and To-do are the three tabs. The page on the right is the cited PDF.
 
-- **Sync Clio** stores phone calls, emails, notes, and messages, and records the names of the matter's PDFs. It does not download the files. Every Clio communication is firm-only.
-- **Extract PDFs** downloads each PDF from Clio at that moment, sends it to Gemini, and saves the facets, segments, and timeline events. The file is not kept. A long scan is compressed first. Page count stays the same.
+- **Sync Clio** stores phone calls, emails, notes, and messages, then compares Clio's PDF list to the PDFs already saved. Unchanged files are left alone. New or updated files are sent to Gemini by URL, and files Clio no longer has are dropped. The PDF bytes are not stored.
+- **Extract PDFs** runs that same PDF comparison without refreshing communications. Gemini reads Clio's file URL. Nothing is uploaded or kept.
 - **Run validations** rebuilds the to-do list from the store. Checking an item off keeps that finding resolved if the same check comes back.
 
 **Provider** drops the firm tabs, the action buttons, and anything marked firm-only. Pick Montefiore Nyack, Advanced Rockland Chiropractic, SportsCare, or New Horizon. That view only includes clinical records that belong to the selected provider.
@@ -92,4 +92,4 @@ On Vercel the filesystem is read-only except `/tmp`, so the SQLite file and the 
 
 Register that callback URL on the Clio app as well. If `CLIO_REDIRECT_URI` is left blank, the app uses `https://$VERCEL_PROJECT_PRODUCTION_URL/callback`.
 
-The sample PDFs are not in git, so **Extract PDFs** finds an empty corpus until `CORPUS_DIR` points at files that exist on the deployment. Gemini and Clio work that run longer than the function limit (60 seconds) can be cut off when the request ends.
+Every Clio communication is firm-only. On Vercel a new instance starts with an empty database, so the first sync after a cold start still extracts every PDF. Later syncs on the same instance only extract what changed. A pass longer than the function limit can be cut off; the next sync continues with the files that were saved.

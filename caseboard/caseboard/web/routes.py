@@ -12,7 +12,7 @@ from caseboard.clio.tokens import SESSION_COOKIE
 from caseboard.domain.enums import DocType
 from caseboard.domain.models import Finding
 from caseboard.errors import CaseboardError
-from caseboard.web.pages import open_pdf, render_page
+from caseboard.web.pages import page_bytes, render_page
 from caseboard.web.workspace import Workspace, parse_query
 
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
@@ -62,13 +62,13 @@ def status(request: Request) -> HTMLResponse:
 @router.get("/pages")
 def page_image(request: Request, document: str, page: int = 1) -> Response:
     _open_session(request)
-    path = open_pdf(
+    source = page_bytes(
         request.app.state.settings,
         request.app.state.clio,
         request.app.state.store,
         document,
     )
-    png, _scanned, _count = render_page(path, page)
+    png, _scanned, _count = render_page(source, page)
     return Response(content=png, media_type="image/png")
 
 

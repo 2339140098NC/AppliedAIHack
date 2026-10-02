@@ -15,7 +15,7 @@ FIELDS_COMM = "id,subject,body,type,date,received_at"
 FIELDS_NOTE = "id,subject,detail,date,type"
 FIELDS_CONVO = "id,subject"
 FIELDS_MESSAGE = "id,body,created_at"
-FIELDS_DOCUMENT = "id,name,latest_document_version{filename,content_type,fully_uploaded}"
+FIELDS_DOCUMENT = "id,name,latest_document_version{id,filename,content_type,fully_uploaded}"
 
 
 class ClioClient:
@@ -102,30 +102,26 @@ class ClioClient:
             {"matter_id": matter_id, "fields": FIELDS_DOCUMENT, "limit": 200},
         )
 
-    def download_pdf(self, document_id: str, dest: Path) -> None:
-        """Follow Clio's 303 and write the PDF. The file host is not Clio."""
+    def file_url(self, document_id: str) -> str:
+        """Return Clio's short-lived file URL. Gemini can read it without a local copy."""
         response = self._request("GET", f"/api/v4/documents/{document_id}/download.json")
         location = response.headers.get("location")
         if response.status_code not in {301, 302, 303, 307, 308} or not location:
             raise CaseboardError(f"Clio did not return a file for document {document_id}")
+        return location
+
+    def pdf_bytes(self, document_id: str) -> bytes:
+        """Read one PDF into memory for the page viewer."""
+        with httpx.Client(timeout=120, trust_env=False, follow_redirects=True) as http:
+            fetched = http.get(self.file_url(document_id))
+        if fetched.status_code >= 400 or not fetched.content.startswith(b"%PDF-"):
+            raise CaseboardError(f"Document {document_id} is not a PDF")
+        return fetched.content
+
+    def download_pdf(self, document_id: str, dest: Path) -> None:
+        """Write one PDF to disk. Extraction does not use this."""
         dest.parent.mkdir(parents=True, exist_ok=True)
-        temporary = dest.with_suffix(".part")
-        header = b""
-        try:
-            with httpx.Client(timeout=120, trust_env=False, follow_redirects=True) as http:
-                with http.stream("GET", location) as fetched:
-                    if fetched.status_code >= 400:
-                        raise CaseboardError(f"Clio file download failed ({fetched.status_code})")
-                    with temporary.open("wb") as handle:
-                        for chunk in fetched.iter_bytes():
-                            if len(header) < 5:
-                                header += chunk
-                            handle.write(chunk)
-            if not header.startswith(b"%PDF-"):
-                raise CaseboardError(f"Document {document_id} is not a PDF")
-            temporary.replace(dest)
-        finally:
-            temporary.unlink(missing_ok=True)
+        dest.write_bytes(self.pdf_bytes(document_id))
 
     def _matter_id(self) -> str:
         if self._settings.clio_matter_id.strip():

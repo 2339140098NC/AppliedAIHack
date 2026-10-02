@@ -1,42 +1,56 @@
-"""Record Clio PDF names. The bytes are fetched when a page or extract needs them."""
+"""Choose matter PDFs from a Clio document list and diff them against the store."""
 
 from pathlib import Path
+from typing import NamedTuple
 
-from caseboard.clio.client import ClioClient
-from caseboard.domain.enums import DocType
 from caseboard.domain.models import SourceFile
-from caseboard.store.documents import DocumentStore
 
 
-class MatterPdfs:
-    """Remember which Clio PDFs belong to the matter. Bytes are fetched later."""
-
-    def __init__(self, client: ClioClient, store: DocumentStore) -> None:
-        self._client = client
-        self._store = store
-
-    def catalog(self, matter_id: str) -> int:
-        chosen = stored_pdfs(self._client.list_documents(matter_id))
-        rows = [
-            (filename, SourceFile(filename=filename, clio_document_id=document_id))
-            for document_id, filename in chosen
-        ]
-        self._store.delete_type(DocType.source)
-        self._store.put_many(DocType.source, rows)
-        return len(rows)
+class RemotePdf(NamedTuple):
+    document_id: str
+    version_id: str
+    filename: str
 
 
-def stored_pdfs(documents: list[dict]) -> list[tuple[str, str]]:
-    """Return (clio id, filename) for uploaded PDFs, skipping duplicate names."""
+def stored_pdfs(documents: list[dict]) -> list[RemotePdf]:
+    """Return uploaded PDFs, skipping duplicate names."""
     taken: set[str] = set()
-    chosen: list[tuple[str, str]] = []
+    chosen: list[RemotePdf] = []
     for item in documents:
         filename = _pdf_name(item, taken)
         if filename is None:
             continue
         taken.add(filename)
-        chosen.append((str(item.get("id")), filename))
+        version = item.get("latest_document_version") or {}
+        chosen.append(
+            RemotePdf(str(item.get("id")), str(version.get("id") or ""), filename)
+        )
     return chosen
+
+
+def diff_pdfs(
+    saved: list[SourceFile], remote: list[RemotePdf]
+) -> tuple[list[RemotePdf], list[str]]:
+    """Return remote PDFs that are new or updated, and saved filenames no longer in Clio."""
+    by_id = {item.clio_document_id: item for item in saved if item.clio_document_id}
+    remote_ids = {item.document_id for item in remote}
+    changed = [
+        item
+        for item in remote
+        if _changed(by_id.get(item.document_id), item)
+    ]
+    removed = [
+        item.filename
+        for item in saved
+        if item.clio_document_id not in remote_ids
+    ]
+    return changed, removed
+
+
+def _changed(current: SourceFile | None, remote: RemotePdf) -> bool:
+    if current is None:
+        return True
+    return current.clio_version_id != remote.version_id or current.filename != remote.filename
 
 
 def _pdf_name(item: dict, taken: set[str]) -> str | None:

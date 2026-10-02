@@ -112,6 +112,16 @@ class DocumentStore:
             rows.append(payload)
         return rows
 
+    def delete_ids(self, doc_type: DocType, ids: list[str]) -> None:
+        if not ids:
+            return
+        marks = ",".join("?" for _ in ids)
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                f"DELETE FROM documents WHERE type = ? AND id IN ({marks})",
+                [doc_type.value, *ids],
+            )
+
     def counts(self) -> dict[str, int]:
         with self._lock, self._connect() as conn:
             found = conn.execute(

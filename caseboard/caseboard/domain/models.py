@@ -83,6 +83,7 @@ class SourceFile(BaseModel):
     filename: str
     page_count: int = 0
     clio_document_id: str = ""
+    clio_version_id: str = ""
 
 
 class Segment(BaseModel):

@@ -63,7 +63,7 @@
       <div class="tab-actions">
         <div id="status" hx-get="/partials/status" hx-trigger="load, every 3s [document.body.dataset.running=='1']" hx-swap="innerHTML"></div>
         <form hx-post="/actions/extract" hx-target="#status" hx-swap="innerHTML">
-          <button class="btn btn-secondary" type="submit" {% if not gemini_ready %}disabled{% endif %}>Extract PDFs</button>
+          <button class="btn btn-secondary" type="submit" {% if not clio_connected %}disabled{% endif %}>Extract PDFs</button>
         </form>
         {% if clio_connected %}
         <form hx-post="/actions/sync" hx-target="#status" hx-swap="innerHTML">
