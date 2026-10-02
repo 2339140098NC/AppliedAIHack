@@ -100,6 +100,55 @@ def _render(name: str, context: dict) -> str:
     return env.get_template(name).render(**context)
 
 
+def test_hyphenated_chart_and_its_exams_stay_on_the_provider_timeline(tmp_path: Path) -> None:
+    store = DocumentStore(tmp_path / "case.sqlite")
+    filename = "04-medical-records__created__new-horizon-surgical-center-records.pdf"
+    store.put(
+        DocType.segment,
+        "op",
+        Segment(
+            id="op",
+            source_file=filename,
+            page_start=1,
+            page_end=4,
+            kind=SegmentKind.operative_report,
+            facility="New Horizon Surgical Center, LLC",
+        ),
+    )
+    store.put(
+        DocType.timeline_event,
+        "visit",
+        TimelineEvent(
+            id="visit",
+            date="2023-07-26",
+            label="Right shoulder arthroscopy",
+            kind=EventKind.surgery,
+            sensitivity=Sensitivity.provider_visible,
+            sensitivity_reason="Clinical or accident event",
+            origin="pdf",
+            evidence=[Evidence(document=filename, page=2, quote="Arthroscopy")],
+        ),
+    )
+    store.put(
+        DocType.timeline_event,
+        "exam",
+        TimelineEvent(
+            id="exam",
+            date="2024-01-09",
+            label="Follow-up examination",
+            kind=EventKind.exam,
+            sensitivity=Sensitivity.firm_only,
+            sensitivity_reason="Firm event",
+            origin="pdf",
+            evidence=[Evidence(document=filename, page=3, quote="Follow-up")],
+        ),
+    )
+    years = Workspace(store, _query(provider="newhorizon")).context()["years"]
+    labels = [event["label"] for year in years for event in year["events"]]
+    assert labels == ["Follow-up examination", "Right shoulder arthroscopy"]
+    assert Workspace(store, _query(provider="montefiore")).context()["years"] == []
+
+
 def test_firm_timeline_has_no_packet_controls(tmp_path: Path) -> None:
     store = DocumentStore(tmp_path / "case.sqlite")
     _seed(store)

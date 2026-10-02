@@ -1,5 +1,6 @@
 """Assemble the workspace from the document store."""
 
+import re
 from calendar import month_abbr
 from datetime import date
 from pathlib import Path
@@ -616,10 +617,19 @@ class Workspace:
         ]
 
     def _provider_event(self, event: TimelineEvent, provider: str) -> bool:
-        if event.sensitivity != Sensitivity.provider_visible:
-            return False
         evidence = event.evidence[0] if event.evidence else None
-        return _matches(provider, _blob(event.label, event.sensitivity_reason, evidence.document if evidence else "", evidence.quote if evidence else ""))
+        document = evidence.document if evidence else ""
+        if not _matches(provider, _blob(
+            event.label,
+            event.sensitivity_reason,
+            document,
+            evidence.quote if evidence else "",
+            *_chart_bits(self.segments, document),
+        )):
+            return False
+        if event.sensitivity == Sensitivity.provider_visible:
+            return True
+        return _own_chart(document)
 
     def _value(self, key: str) -> str:
         for facet in self.facets:
@@ -662,20 +672,41 @@ def _segment_at(segments: list[Segment], document: str, page: int) -> Segment | 
     return None
 
 
+def _fold(value: str) -> str:
+    """Hyphens and punctuation should not hide a provider's own file."""
+    return re.sub(r"[^a-z0-9]+", " ", value.casefold()).strip()
+
+
 def _matches(provider: str, blob: str) -> bool:
-    text = blob.lower()
+    text = f" {_fold(blob)} "
     for key, _name, tokens in PROVIDERS:
         if key == provider:
-            return any(token in text for token in tokens)
+            return any(f" {_fold(token)} " in text for token in tokens)
     return False
 
 
 def _provider_name(blob: str) -> str:
-    text = blob.lower()
+    text = f" {_fold(blob)} "
     for _key, name, tokens in PROVIDERS:
-        if any(token in text for token in tokens):
+        if any(f" {_fold(token)} " in text for token in tokens):
             return name
     return ""
+
+
+def _chart_bits(segments: list[Segment], document: str) -> tuple[str, ...]:
+    if not document:
+        return ()
+    return tuple(
+        _blob(segment.facility, segment.authored_by, segment.source_file)
+        for segment in segments
+        if segment.source_file == document
+    )
+
+
+def _own_chart(document: str) -> bool:
+    """An exam pulled from the provider's records, not a firm email or a pleading."""
+    folded = _fold(document)
+    return "medical record" in folded or "medical bill" in folded
 
 
 def _blob(*parts: str) -> str:
