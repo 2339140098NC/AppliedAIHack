@@ -184,9 +184,9 @@ class Workspace:
 
     def _tabs(self, open_count: int) -> list[dict]:
         if self.query.firm:
-            specs = [("timeline", "Timeline", None), ("evidence", "Case", None), ("todo", "To-do", open_count or None)]
+            specs = [("timeline", "Overview", None), ("evidence", "Case", None), ("todo", "To-do", open_count or None)]
         else:
-            specs = [("timeline", "Timeline", None), ("records", "My records", None)]
+            specs = [("timeline", "Overview", None), ("records", "My records", None)]
         tabs = []
         for index, (tab, label, count) in enumerate(specs, start=1):
             tabs.append({
