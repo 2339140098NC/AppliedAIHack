@@ -1,8 +1,10 @@
-"""Persist the single-firm Clio refresh token outside git."""
+"""Persist the Clio token in a local file and a browser cookie."""
 
 import json
 import time
 from pathlib import Path
+
+SESSION_COOKIE = "clio_session"
 
 
 class TokenStore:
@@ -20,6 +22,24 @@ class TokenStore:
         payload["obtained_at"] = time.time()
         self._path.write_text(json.dumps(payload))
 
+    def adopt(self, raw: str | None) -> None:
+        """Load a cookie onto this instance when the local file is missing."""
+        if self._path.exists() or not raw:
+            return
+        try:
+            payload = json.loads(raw)
+        except json.JSONDecodeError:
+            return
+        if payload.get("refresh_token") or payload.get("access_token"):
+            self._path.parent.mkdir(parents=True, exist_ok=True)
+            self._path.write_text(json.dumps(payload))
+
+    def export(self) -> str | None:
+        data = self.load()
+        if not data or not (data.get("refresh_token") or data.get("access_token")):
+            return None
+        return json.dumps(data)
+
     def connected(self) -> bool:
         data = self.load()
-        return bool(data and data.get("refresh_token") or (data and data.get("access_token")))
+        return bool(data and (data.get("refresh_token") or data.get("access_token")))

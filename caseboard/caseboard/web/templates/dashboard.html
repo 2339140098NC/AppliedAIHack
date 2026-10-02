@@ -65,9 +65,13 @@
         <form hx-post="/actions/extract" hx-target="#status" hx-swap="innerHTML">
           <button class="btn btn-secondary" type="submit" {% if not gemini_ready %}disabled{% endif %}>Extract PDFs</button>
         </form>
+        {% if clio_connected %}
         <form hx-post="/actions/sync" hx-target="#status" hx-swap="innerHTML">
           <button class="btn btn-secondary" type="submit">Sync Clio</button>
         </form>
+        {% else %}
+        <a class="btn btn-secondary" href="/clio/connect">Connect Clio</a>
+        {% endif %}
         <form hx-post="/actions/validate" hx-target="#status" hx-swap="innerHTML">
           <button class="btn btn-primary blueprint" type="submit">Run validations<i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i></button>
         </form>

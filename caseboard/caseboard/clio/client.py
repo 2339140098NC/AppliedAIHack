@@ -1,15 +1,15 @@
 """Read phone logs, emails, notes, messages, and documents from Clio Manage."""
 
-import secrets
 import time
 from pathlib import Path
 from urllib.parse import urlencode
 
 import httpx
 
+from caseboard.clio.session import check_state, issue_state
+from caseboard.clio.tokens import TokenStore
 from caseboard.config import Settings
 from caseboard.errors import CaseboardError
-from caseboard.clio.tokens import TokenStore
 
 FIELDS_COMM = "id,subject,body,type,date,received_at"
 FIELDS_NOTE = "id,subject,detail,date,type"
@@ -24,15 +24,13 @@ class ClioClient:
     def __init__(self, settings: Settings, tokens: TokenStore) -> None:
         self._settings = settings
         self._tokens = tokens
-        self._states: set[str] = set()
         host = settings.clio_region_host.rstrip("/")
         self._host = host
         self._http = httpx.Client(base_url=host, timeout=60, trust_env=False)
 
     def authorize_url(self) -> str:
         self._require_app()
-        state = secrets.token_urlsafe(24)
-        self._states.add(state)
+        state = issue_state(self._settings.clio_client_secret)
         query = urlencode(
             {
                 "response_type": "code",
@@ -44,9 +42,7 @@ class ClioClient:
         return f"{self._host}/oauth/authorize?{query}"
 
     def exchange(self, code: str, state: str) -> None:
-        if state not in self._states:
-            raise CaseboardError("Clio login state did not match")
-        self._states.discard(state)
+        check_state(self._settings.clio_client_secret, state)
         response = self._http.post(
             "/oauth/token",
             data={

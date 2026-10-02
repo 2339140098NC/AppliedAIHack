@@ -8,6 +8,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
+from caseboard.clio.tokens import SESSION_COOKIE
 from caseboard.domain.enums import DocType
 from caseboard.domain.models import Finding
 from caseboard.errors import CaseboardError
@@ -26,6 +27,7 @@ def _context(request: Request, *, refresh: bool = False) -> dict:
         {
             "gemini_ready": settings.gemini_ready,
             "clio_ready": settings.clio_ready,
+            "clio_connected": request.app.state.clio.connected(),
             "job": request.app.state.job.snapshot(),
             "refresh": refresh,
         }
@@ -35,7 +37,9 @@ def _context(request: Request, *, refresh: bool = False) -> dict:
 
 @router.get("/", response_class=HTMLResponse)
 def dashboard(request: Request) -> HTMLResponse:
-    return TEMPLATES.TemplateResponse(request, "dashboard.html", _context(request))
+    _open_session(request)
+    response = TEMPLATES.TemplateResponse(request, "dashboard.html", _context(request))
+    return _keep_session(response, request)
 
 
 @router.get("/partials/stage", response_class=HTMLResponse)
@@ -50,7 +54,9 @@ def viewer(request: Request) -> HTMLResponse:
 
 @router.get("/partials/status", response_class=HTMLResponse)
 def status(request: Request) -> HTMLResponse:
-    return TEMPLATES.TemplateResponse(request, "partials/status.html", _status_context(request))
+    _open_session(request)
+    response = TEMPLATES.TemplateResponse(request, "partials/status.html", _status_context(request))
+    return _keep_session(response, request)
 
 
 @router.get("/pages")
@@ -85,15 +91,17 @@ def sync(request: Request) -> HTMLResponse:
 
 @router.post("/actions/validate", response_class=HTMLResponse)
 def validate(request: Request) -> HTMLResponse:
+    _open_session(request)
     try:
         request.app.state.actions.validate()
     except CaseboardError as exc:
         return HTMLResponse(_error(exc), status_code=409)
-    return TEMPLATES.TemplateResponse(
+    response = TEMPLATES.TemplateResponse(
         request,
         "partials/status.html",
         _status_context(request, refresh=True),
     )
+    return _keep_session(response, request)
 
 
 @router.get("/clio/connect", response_model=None)
@@ -112,14 +120,36 @@ def clio_callback(request: Request, code: str = "", state: str = "") -> Redirect
         request.app.state.clio.exchange(code, state)
     except CaseboardError as exc:
         return HTMLResponse(_error(exc), status_code=400)
-    return RedirectResponse("/", status_code=303)
+    response = RedirectResponse("/", status_code=303)
+    return _keep_session(response, request)
 
 
 def _status_context(request: Request, *, refresh: bool = False) -> dict:
     return {"job": request.app.state.job.snapshot(), "refresh": refresh}
 
 
+def _open_session(request: Request) -> None:
+    request.app.state.clio.tokens.adopt(request.cookies.get(SESSION_COOKIE))
+
+
+def _keep_session(response: Response, request: Request) -> Response:
+    raw = request.app.state.clio.tokens.export()
+    if not raw:
+        return response
+    response.set_cookie(
+        SESSION_COOKIE,
+        raw,
+        max_age=60 * 60 * 24 * 30,
+        httponly=True,
+        secure=request.url.scheme == "https",
+        samesite="lax",
+        path="/",
+    )
+    return response
+
+
 def _start(request: Request, name: str, target) -> HTMLResponse:
+    _open_session(request)
     job = request.app.state.job
     try:
         job.start(name)
