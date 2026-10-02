@@ -74,20 +74,10 @@
       {% if firm %}
       <div class="tab-actions">
         <div id="status" hx-get="/partials/status" hx-trigger="load, every 3s [document.body.dataset.running=='1']" hx-swap="innerHTML"></div>
-        <form hx-post="/actions/extract" hx-target="#status" hx-swap="innerHTML" data-drawer-page="{{ query.url(drawer='1', document='', page='', quote='', sel='') }}" data-drawer-partial="/partials/drawer{{ query.url(drawer='1', document='', page='', quote='', sel='')[1:] }}">
-          <button class="btn btn-secondary" type="submit" {% if not clio_connected %}disabled{% endif %}>Extract PDFs</button>
-        </form>
         <a class="btn btn-secondary" href="{{ query.url(drawer='1', document='', page='', quote='', sel='') }}" hx-get="/partials/drawer{{ query.url(drawer='1', document='', page='', quote='', sel='')[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ query.url(drawer='1', document='', page='', quote='', sel='') }}">Extractions</a>
-        {% if clio_connected %}
-        <form hx-post="/actions/sync" hx-target="#status" hx-swap="innerHTML">
-          <button class="btn btn-secondary" type="submit">Sync Clio</button>
-        </form>
-        {% else %}
+        {% if not clio_connected %}
         <a class="btn btn-secondary" href="/clio/connect">Connect Clio</a>
         {% endif %}
-        <form hx-post="/actions/glance" hx-target="#status" hx-swap="innerHTML">
-          <button class="btn btn-secondary" type="submit" {% if not gemini_ready %}disabled{% endif %}>Read timeline</button>
-        </form>
         <form hx-post="/actions/validate" hx-target="#status" hx-swap="innerHTML">
           <button class="btn btn-primary blueprint" type="submit">Run validations<i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i></button>
         </form>
