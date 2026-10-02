@@ -75,6 +75,7 @@ class Workspace:
         self.has_portrait = bool(loaded[DocType.portrait])
         self.charges = [Charge.model_validate(row) for row in loaded[DocType.charge]]
         self.summary = _summary_line(loaded[DocType.summary])
+        self.overview = _summary_overview(loaded[DocType.summary])
         self.summary_actions = _summary_actions(loaded[DocType.summary])
         self._glances = {
             item.id: item
@@ -166,6 +167,7 @@ class Workspace:
         open_todos = sum(not item.resolved for item in self.findings)
         return {
             "summary": self.summary,
+            "overview": self.overview,
             "actions": decision_actions(self.summary_actions, urgent, critical),
             "cards": [
                 {"k": "Age of case", "v": case_age(accident, date.today()) or "—", "sub": f"Since {when}" if when else "", "href": ""},
@@ -776,6 +778,12 @@ def _summary_line(rows: list[dict]) -> str:
     if not rows:
         return ""
     return CaseSummary.model_validate(rows[0]).line
+
+
+def _summary_overview(rows: list[dict]) -> str:
+    if not rows:
+        return ""
+    return CaseSummary.model_validate(rows[0]).overview
 
 
 def _summary_actions(rows: list[dict]) -> list[str]:

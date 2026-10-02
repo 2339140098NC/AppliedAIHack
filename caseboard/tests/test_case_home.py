@@ -138,12 +138,14 @@ def test_firm_home_leads_with_posture_and_hides_it_from_a_provider(tmp_path: Pat
         CaseSummary(
             id="case",
             line="Surgery is waiting on a re-exam, and the papers still disagree on the address.",
+            overview="A shoulder injury claim with an arthroscopy already performed.",
             actions=["Right shoulder arthroscopy"],
         ),
     )
     firm = Workspace(store, _query()).context()
     assert firm["posture"] == "Surgery is waiting on a re-exam, and the papers still disagree on the address."
     assert firm["status"]["summary"] == firm["posture"]
+    assert firm["status"]["overview"].startswith("A shoulder injury")
     assert firm["status"]["actions"][0]["label"] == "Right shoulder arthroscopy"
     assert firm["status"]["cards"][0]["sub"] == "Since Apr 23, 2023"
     labels = [card["k"] for card in firm["status"]["cards"]]

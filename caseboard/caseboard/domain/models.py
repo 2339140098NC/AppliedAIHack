@@ -176,10 +176,11 @@ class ItemGlance(BaseModel):
 
 
 class CaseSummary(BaseModel):
-    """One factual sentence for the lawyer opening the file, plus the actions it names."""
+    """A case overview, the action in front of the lawyer, and the buttons under it."""
 
     id: str
     line: str
+    overview: str = ""
     actions: list[str] = Field(default_factory=list)
 
 
