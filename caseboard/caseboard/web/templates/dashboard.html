@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sapini v. Ferrara &amp; Metro-North</title>
   <link rel="stylesheet" href="/static/industry.css">
-  <link rel="stylesheet" href="/static/workspace.css">
+  <link rel="stylesheet" href="/static/workspace.css?v=drawer-right">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap">
   <script src="/static/htmx.min.js"></script>
 </head>
@@ -62,7 +62,7 @@
       {% if firm %}
       <div class="tab-actions">
         <div id="status" hx-get="/partials/status" hx-trigger="load, every 3s [document.body.dataset.running=='1']" hx-swap="innerHTML"></div>
-        <form hx-post="/actions/extract" hx-target="#status" hx-swap="innerHTML">
+        <form hx-post="/actions/extract" hx-target="#status" hx-swap="innerHTML" data-drawer-page="{{ query.url(drawer='1', document='', page='', quote='', sel='') }}" data-drawer-partial="/partials/drawer{{ query.url(drawer='1', document='', page='', quote='', sel='')[1:] }}">
           <button class="btn btn-secondary" type="submit" {% if not clio_connected %}disabled{% endif %}>Extract PDFs</button>
         </form>
         <a class="btn btn-secondary" href="{{ query.url(drawer='1', document='', page='', quote='', sel='') }}" hx-get="/partials/drawer{{ query.url(drawer='1', document='', page='', quote='', sel='')[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ query.url(drawer='1', document='', page='', quote='', sel='') }}">Extractions</a>
@@ -81,11 +81,11 @@
     </div>
 
     <div id="stage" class="stage">{% include "partials/stage.html" %}</div>
-    <aside id="drawer" class="drawer {% if drawer_open %}is-open{% endif %}">
-      <a class="drawer-scrim" href="{{ query.url(document='', page='', quote='', sel='', drawer='') }}" data-close-drawer aria-label="Close"></a>
-      <div id="drawer-panel" class="drawer-panel viewer">{% include "partials/drawer.html" %}</div>
-    </aside>
   </div>
+  <aside id="drawer" class="drawer {% if drawer_open %}is-open{% endif %}">
+    <a class="drawer-scrim" href="{{ query.url(document='', page='', quote='', sel='', drawer='') }}" data-close-drawer aria-label="Close"></a>
+    <div id="drawer-panel" class="drawer-panel viewer">{% include "partials/drawer.html" %}</div>
+  </aside>
   <script>
     document.body.addEventListener("htmx:afterSwap", (event) => {
       if (event.detail.target.id !== "status") return;
@@ -93,13 +93,24 @@
       const was = document.body.dataset.running === "1";
       const refresh = !!event.detail.target.querySelector("[data-refresh]");
       document.body.dataset.running = running ? "1" : "0";
-      if ((was && !running) || refresh) {
-        const search = window.location.search || "";
+      const search = window.location.search || "";
+      const finished = (was && !running) || refresh;
+      if (finished) {
         htmx.ajax("GET", "/partials/stage" + search, {target: "#stage", swap: "innerHTML"});
-        if (document.getElementById("drawer").classList.contains("is-open")) {
-          htmx.ajax("GET", "/partials/drawer" + search, {target: "#drawer-panel", swap: "innerHTML"});
-        }
       }
+      if ((finished || running) && document.getElementById("drawer").classList.contains("is-open")) {
+        htmx.ajax("GET", "/partials/drawer" + search, {target: "#drawer-panel", swap: "innerHTML"});
+      }
+    });
+    document.body.addEventListener("submit", (event) => {
+      const form = event.target;
+      if (!(form instanceof HTMLFormElement)) return;
+      const page = form.getAttribute("data-drawer-page");
+      const partial = form.getAttribute("data-drawer-partial");
+      if (!page || !partial) return;
+      document.getElementById("drawer").classList.add("is-open");
+      history.pushState({}, "", page);
+      htmx.ajax("GET", partial, {target: "#drawer-panel", swap: "innerHTML"});
     });
     document.body.addEventListener("htmx:beforeSwap", (event) => {
       if (event.detail.target.id !== "drawer-panel") return;

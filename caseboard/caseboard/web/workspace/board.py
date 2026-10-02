@@ -178,7 +178,7 @@ class Workspace:
             for index, entry in enumerate(entries):
                 evidence = entry.evidence[0] if entry.evidence else None
                 rows.append({
-                    "letter": "ABCDEFGHIJ"[index] if len(entries) > 1 else "·",
+                    "letter": _entry_letter(index) if len(entries) > 1 else "·",
                     "value": entry.value or "Left blank",
                     "blank": not entry.value,
                     "conflict": group.status == GroupStatus.conflict,
@@ -468,6 +468,12 @@ def _extracted_when(value: str) -> str:
     if not value:
         return ""
     return value.replace("T", " ").removesuffix("Z") + " UTC"
+
+
+def _entry_letter(index: int) -> str:
+    if index < 26:
+        return chr(ord("A") + index)
+    return str(index + 1)
 
 
 def _page_span(start: int, end: int) -> str:
