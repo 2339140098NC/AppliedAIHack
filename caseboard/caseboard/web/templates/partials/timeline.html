@@ -9,7 +9,7 @@
   </div>
   {% for event in year.events %}
   <div class="event {% if event.selected %}is-selected{% endif %}"
-       {% if event.href %}hx-get="/partials/viewer{{ event.href[1:] }}" hx-target="#viewer" hx-swap="innerHTML" hx-push-url="{{ event.href }}"{% endif %}>
+       {% if event.href %}hx-get="/partials/drawer{{ event.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ event.href }}"{% endif %}>
     <div>
       <div class="event-month">{{ event.month }}</div>
       <div class="event-day">{{ event.day }}</div>

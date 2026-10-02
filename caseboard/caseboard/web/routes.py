@@ -4,7 +4,7 @@ import html
 import threading
 from pathlib import Path
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
@@ -47,9 +47,9 @@ def stage(request: Request) -> HTMLResponse:
     return TEMPLATES.TemplateResponse(request, "partials/stage_response.html", _context(request))
 
 
-@router.get("/partials/viewer", response_class=HTMLResponse)
-def viewer(request: Request) -> HTMLResponse:
-    return TEMPLATES.TemplateResponse(request, "partials/viewer.html", _context(request))
+@router.get("/partials/drawer", response_class=HTMLResponse)
+def drawer(request: Request) -> HTMLResponse:
+    return TEMPLATES.TemplateResponse(request, "partials/drawer.html", _context(request))
 
 
 @router.get("/partials/status", response_class=HTMLResponse)
@@ -88,6 +88,14 @@ def toggle_finding(request: Request, finding_id: str) -> HTMLResponse:
 @router.post("/actions/extract", response_class=HTMLResponse)
 def extract(request: Request) -> HTMLResponse:
     return _start(request, "extract", request.app.state.actions.extract)
+
+
+@router.post("/actions/reextract", response_class=HTMLResponse)
+def reextract(request: Request, filename: str = Form()) -> HTMLResponse:
+    name = Path(filename).name
+    if not name or name != filename or not name.lower().endswith(".pdf"):
+        return HTMLResponse(_error(CaseboardError("That is not a PDF on this matter")), status_code=400)
+    return _start(request, "extract", lambda: request.app.state.actions.extract_one(name))
 
 
 @router.post("/actions/sync", response_class=HTMLResponse)

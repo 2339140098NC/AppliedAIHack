@@ -1,0 +1,15 @@
+<div class="drawer-bar">
+  {% if firm and viewer.document %}
+  <a class="btn btn-ghost" href="{{ query.url(document='', page='', quote='', drawer='1') }}" hx-get="/partials/drawer{{ query.url(document='', page='', quote='', drawer='1')[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ query.url(document='', page='', quote='', drawer='1') }}">Extractions</a>
+  {% elif firm %}
+  <div class="viewer-title">Extractions</div>
+  {% else %}
+  <div class="viewer-title">Record</div>
+  {% endif %}
+  <a class="btn btn-ghost" href="{{ query.url(document='', page='', quote='', sel='', drawer='') }}" data-close-drawer>Close</a>
+</div>
+{% if firm and not viewer.document %}
+{% include "partials/extractions.html" %}
+{% else %}
+{% include "partials/viewer.html" %}
+{% endif %}

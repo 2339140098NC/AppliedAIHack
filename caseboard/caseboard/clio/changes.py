@@ -1,7 +1,7 @@
 """Extract only the PDFs whose Clio version is not already saved."""
 
 from caseboard.clio.client import ClioClient
-from caseboard.clio.documents import RemotePdf, diff_pdfs, stored_pdfs
+from caseboard.clio.documents import RemotePdf, diff_pdfs, select_extracts, stored_pdfs
 from caseboard.domain.enums import DocType
 from caseboard.domain.models import SourceFile
 from caseboard.extract.corpus import CorpusExtractor, high_resolution
@@ -57,9 +57,14 @@ class PdfChanges:
         self._extractor = extractor
         self._corpus = corpus
 
-    def run(self, on_progress) -> tuple[int, int, int, list[str]]:
+    def run(self, on_progress, *, only: str = "", force: bool = False) -> tuple[int, int, int, list[str]]:
         """Return counts of changed, removed, and unchanged PDFs, plus per-file errors."""
         remote, _saved, changed, removed, by_id = _compared(self._client, self._store)
+        if only:
+            changed, missing = select_extracts(changed, remote, only=only, force=force)
+            removed = []
+            if missing:
+                return 0, 0, 0, [missing]
         for filename in removed:
             on_progress(f"Removed {filename}")
             self._corpus.forget(filename)

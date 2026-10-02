@@ -25,6 +25,17 @@ class Actions:
         self._clio = clio
         self._job = job
 
+    def extract_one(self, filename: str) -> None:
+        try:
+            changed, removed, unchanged, problems = self._pdf_changes(only=filename, force=True)
+            count = ValidationRunner(self._store).run()
+            self._job.finish(
+                _pdf_message(changed, removed, unchanged, count),
+                error="; ".join(problems),
+            )
+        except Exception as exc:
+            self._job.finish("Extract failed", error=str(exc))
+
     def extract(self) -> None:
         try:
             changed, removed, unchanged, problems = self._pdf_changes()
@@ -62,7 +73,7 @@ class Actions:
         )
         return PdfList(self._clio, self._store, corpus).record(self._job.update)
 
-    def _pdf_changes(self) -> tuple[int, int, int, list[str]]:
+    def _pdf_changes(self, *, only: str = "", force: bool = False) -> tuple[int, int, int, list[str]]:
         extractor = GeminiExtractor(
             self._settings.gemini_api_key,
             self._settings.gemini_model,
@@ -73,7 +84,9 @@ class Actions:
             self._settings.docs_dir,
             self._settings.compress_dir,
         )
-        return PdfChanges(self._clio, self._store, extractor, corpus).run(self._job.update)
+        return PdfChanges(self._clio, self._store, extractor, corpus).run(
+            self._job.update, only=only, force=force
+        )
 
 
 def _list_message(new: int, removed: int, unchanged: int, updated: int, findings: int) -> str:

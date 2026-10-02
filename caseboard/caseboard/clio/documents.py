@@ -47,6 +47,24 @@ def diff_pdfs(
     return changed, removed
 
 
+def select_extracts(
+    changed: list[RemotePdf],
+    remote: list[RemotePdf],
+    *,
+    only: str = "",
+    force: bool = False,
+) -> tuple[list[RemotePdf], str]:
+    """Pick the PDFs to send to Gemini. A forced file ignores the saved Clio version."""
+    if not only:
+        return changed, ""
+    chosen = [item for item in remote if item.filename == only]
+    if not chosen:
+        return [], f"{only} is not a PDF on this matter"
+    if force:
+        return chosen, ""
+    return [item for item in changed if item.filename == only], ""
+
+
 def _changed(current: SourceFile | None, remote: RemotePdf) -> bool:
     if current is None:
         return True

@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from caseboard.clio.changes import PdfList
-from caseboard.clio.documents import RemotePdf, diff_pdfs, stored_pdfs
+from caseboard.clio.documents import RemotePdf, diff_pdfs, select_extracts, stored_pdfs
 from caseboard.domain.enums import DocType
 from caseboard.domain.models import ModelEvidence, ModelEvent, ModelFacet, ModelSegment, PdfExtract, SourceFile
 from caseboard.extract.corpus import CorpusExtractor
@@ -70,6 +70,16 @@ def test_diff_pdfs_keeps_matching_versions() -> None:
         RemotePdf("3", "v2", "renamed.pdf"),
         RemotePdf("4", "v1", "new.pdf"),
     ]
+
+
+def test_force_reextract_ignores_the_saved_version() -> None:
+    remote = [RemotePdf("1", "v1", "a.pdf"), RemotePdf("2", "v1", "b.pdf")]
+    picked, missing = select_extracts([], remote, only="a.pdf", force=True)
+    assert missing == ""
+    assert picked == [RemotePdf("1", "v1", "a.pdf")]
+    picked, missing = select_extracts([], remote, only="missing.pdf", force=True)
+    assert picked == []
+    assert "missing.pdf" in missing
 
 
 def test_remember_drops_only_that_file(tmp_path: Path) -> None:

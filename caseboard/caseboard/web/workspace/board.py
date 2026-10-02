@@ -12,6 +12,7 @@ from caseboard.domain.models import (
     SourceFile,
     TimelineEvent,
 )
+from caseboard.extract.stamp import extract_stamp
 from caseboard.store.documents import DocumentStore
 from caseboard.web.workspace.query import PROVIDERS, WorkspaceQuery
 
@@ -64,38 +65,13 @@ class Workspace:
             "sections": _SECTIONS,
             "records": self._records(query),
             "viewer": self._viewer(query),
+            "extractions": self._extractions(query),
+            "drawer_open": bool(query.drawer or query.document),
             "ev_compared": query.ev != "all",
         }
 
     def _with_viewer(self) -> WorkspaceQuery:
-        query = self.query
-        if query.document:
-            return query
-        if query.firm and self.sources:
-            return WorkspaceQuery(
-                view=query.view,
-                provider=query.provider,
-                tab=query.tab,
-                document=self.sources[0].filename,
-                page=1,
-                quote="",
-                ev=query.ev,
-                selected="",
-            )
-        owned = self._owned_segments(query.provider)
-        if not query.firm and owned:
-            first = owned[0]
-            return WorkspaceQuery(
-                view=query.view,
-                provider=query.provider,
-                tab=query.tab,
-                document=first.source_file,
-                page=first.page_start,
-                quote="",
-                ev=query.ev,
-                selected="",
-            )
-        return query
+        return self.query
 
     def _plate(self, open_count: int) -> list[dict]:
         pages = sum(item.page_count for item in self.sources)
@@ -290,6 +266,28 @@ class Workspace:
             })
         return {"facts": facts, "documents": documents}
 
+    def _extractions(self, query: WorkspaceQuery) -> list[dict]:
+        current = extract_stamp()
+        rows = []
+        for source in sorted(self.sources, key=lambda item: item.filename):
+            done = bool(source.extracted_at or source.clio_version_id)
+            stale = bool(source.schema_id) and source.schema_id != current
+            if not done:
+                state, label = "waiting", "Not extracted"
+            elif stale:
+                state, label = "stale", "Schema changed"
+            else:
+                state, label = "done", "Extracted"
+            rows.append({
+                "filename": source.filename,
+                "title": _title(Path(source.filename).stem.split("__")[-1]),
+                "when": _extracted_when(source.extracted_at),
+                "state": state,
+                "label": label,
+                "href": query.url(document=source.filename, page=1, quote="", drawer="1"),
+            })
+        return rows
+
     def _viewer(self, query: WorkspaceQuery) -> dict:
         document = query.document
         page = query.page or 1
@@ -464,6 +462,12 @@ def _pretty_date(value: str) -> str:
     if month:
         return f"{month.title()} {year}"
     return value
+
+
+def _extracted_when(value: str) -> str:
+    if not value:
+        return ""
+    return value.replace("T", " ").removesuffix("Z") + " UTC"
 
 
 def _page_span(start: int, end: int) -> str:

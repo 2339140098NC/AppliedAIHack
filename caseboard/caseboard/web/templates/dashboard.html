@@ -65,6 +65,7 @@
         <form hx-post="/actions/extract" hx-target="#status" hx-swap="innerHTML">
           <button class="btn btn-secondary" type="submit" {% if not clio_connected %}disabled{% endif %}>Extract PDFs</button>
         </form>
+        <a class="btn btn-secondary" href="{{ query.url(drawer='1', document='', page='', quote='', sel='') }}" hx-get="/partials/drawer{{ query.url(drawer='1', document='', page='', quote='', sel='')[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ query.url(drawer='1', document='', page='', quote='', sel='') }}">Extractions</a>
         {% if clio_connected %}
         <form hx-post="/actions/sync" hx-target="#status" hx-swap="innerHTML">
           <button class="btn btn-secondary" type="submit">Sync Clio</button>
@@ -80,6 +81,10 @@
     </div>
 
     <div id="stage" class="stage">{% include "partials/stage.html" %}</div>
+    <aside id="drawer" class="drawer {% if drawer_open %}is-open{% endif %}">
+      <a class="drawer-scrim" href="{{ query.url(document='', page='', quote='', sel='', drawer='') }}" data-close-drawer aria-label="Close"></a>
+      <div id="drawer-panel" class="drawer-panel viewer">{% include "partials/drawer.html" %}</div>
+    </aside>
   </div>
   <script>
     document.body.addEventListener("htmx:afterSwap", (event) => {
@@ -91,7 +96,22 @@
       if ((was && !running) || refresh) {
         const search = window.location.search || "";
         htmx.ajax("GET", "/partials/stage" + search, {target: "#stage", swap: "innerHTML"});
+        if (document.getElementById("drawer").classList.contains("is-open")) {
+          htmx.ajax("GET", "/partials/drawer" + search, {target: "#drawer-panel", swap: "innerHTML"});
+        }
       }
+    });
+    document.body.addEventListener("htmx:beforeSwap", (event) => {
+      if (event.detail.target.id !== "drawer-panel") return;
+      document.getElementById("drawer").classList.add("is-open");
+    });
+    document.body.addEventListener("click", (event) => {
+      const closer = event.target.closest("[data-close-drawer]");
+      if (!closer) return;
+      event.preventDefault();
+      document.getElementById("drawer").classList.remove("is-open");
+      const url = closer.getAttribute("href");
+      if (url) history.pushState({}, "", url);
     });
     document.body.addEventListener("click", (event) => {
       const row = event.target.closest(".event, .fact-card, .facts tr, .record-row");

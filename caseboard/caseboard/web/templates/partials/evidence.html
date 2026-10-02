@@ -29,7 +29,7 @@
         <div class="value {% if row.blank %}blank{% endif %}">{{ row.value }}</div>
         <div class="src-row">
           {% for source in row.sources %}
-          <a class="src-link" href="{{ source.href }}" hx-get="/partials/viewer{{ source.href[1:] }}" hx-target="#viewer" hx-swap="innerHTML" hx-push-url="{{ source.href }}">
+          <a class="src-link" href="{{ source.href }}" hx-get="/partials/drawer{{ source.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ source.href }}">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path></svg>
             {{ source.label }}
           </a>
@@ -48,7 +48,7 @@
   <thead><tr><th>Fact</th><th>What the page says</th><th>Source</th><th>Who can see it</th></tr></thead>
   <tbody>
     {% for fact in facts %}
-    <tr hx-get="/partials/viewer{{ fact.href[1:] }}" hx-target="#viewer" hx-swap="innerHTML" hx-push-url="{{ fact.href }}">
+    <tr hx-get="/partials/drawer{{ fact.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ fact.href }}">
       <td style="color:var(--color-neutral-700);font-size:13px">{{ fact.fact }}</td>
       <td style="font-weight:500">{{ fact.value }}</td>
       <td style="font-size:12px;color:var(--color-accent-700);white-space:nowrap">{{ fact.src }}</td>

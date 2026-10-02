@@ -1,6 +1,7 @@
 """Create, read, replace, and delete one PDF's stored extract."""
 
 import uuid
+from datetime import datetime, timezone
 
 from pydantic import BaseModel
 
@@ -14,6 +15,7 @@ from caseboard.domain.models import (
     TimelineEvent,
 )
 from caseboard.extract.assemble import build_groups
+from caseboard.extract.stamp import extract_stamp
 from caseboard.extract.sensitivity import (
     coerce_event_kind,
     coerce_segment_kind,
@@ -76,6 +78,8 @@ class ExtractionRecords:
             page_count=page_count if page_count is not None else _page_span(extracted),
             clio_document_id=document_id,
             clio_version_id=version_id,
+            extracted_at=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            schema_id=extract_stamp(),
         )
         self._store.put(DocType.source, filename, source)
         self._store.put_many(DocType.segment, _segments(filename, extracted))
