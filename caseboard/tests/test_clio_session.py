@@ -10,6 +10,7 @@ from caseboard.clio.session import check_state, issue_state
 from caseboard.clio.tokens import TokenStore
 from caseboard.config import Settings
 from caseboard.errors import CaseboardError
+from tests.test_upstash_store import MemoryRedis
 
 
 def test_signed_state_round_trips() -> None:
@@ -35,3 +36,14 @@ def test_cookie_adopts_only_when_the_file_is_missing(tmp_path: Path) -> None:
     assert store.connected()
     store.adopt(json.dumps({"refresh_token": "newer"}))
     assert store.load()["refresh_token"] == "refresh"
+
+
+def test_upstash_keeps_the_token_for_the_next_instance(tmp_path: Path) -> None:
+    cache = MemoryRedis()
+    first = TokenStore(tmp_path / "one.json", cache)
+    first.save({"refresh_token": "refresh", "access_token": "access", "expires_in": 3600})
+    second = TokenStore(tmp_path / "two.json", cache)
+    assert second.connected()
+    assert second.load()["refresh_token"] == "refresh"
+    second.adopt(json.dumps({"refresh_token": "newer", "access_token": "other"}))
+    assert second.load()["refresh_token"] == "refresh"

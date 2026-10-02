@@ -46,6 +46,9 @@ class MemoryRedis:
         self.strings[key] = value
         return "OK"
 
+    def get(self, key: str) -> str | None:
+        return self.strings.get(key)
+
     def sadd(self, key: str, *members: str) -> int:
         bucket = self.sets.setdefault(key, set())
         before = len(bucket)

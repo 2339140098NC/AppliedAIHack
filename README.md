@@ -80,7 +80,7 @@ The sample PDFs stay outside git, in `Sapini documents/` next to `caseboard/`.
 
 Pushes to `main` on [AppliedAIHack](https://github.com/2339140098NC/AppliedAIHack) deploy through Vercel. The repo root `app.py` is the FastAPI entry. Vercel installs `requirements.txt`.
 
-On Vercel the filesystem is read-only except `/tmp`, so the Clio token file lives in `/tmp/caseboard` and the browser cookie keeps the session. The case records live in Upstash Redis when `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are set, so a new instance keeps the timeline and extracts. Without those two variables the app falls back to the local SQLite file. Set these in the Vercel project (Project → Settings → Environment Variables), using the same values as `caseboard/.env`:
+On Vercel the filesystem is read-only except `/tmp`. Case records and the Clio token live in Upstash Redis when `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are set, so a new instance keeps the timeline, the extracts, and the Clio login. The browser cookie still carries the token as a backup. Without those two variables the app falls back to the local SQLite file and `clio-token.json`. Set these in the Vercel project (Project → Settings → Environment Variables), using the same values as `caseboard/.env`:
 
 | Variable | Production value |
 |---|---|
