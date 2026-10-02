@@ -5,6 +5,7 @@ from pathlib import Path
 
 from caseboard.domain.enums import DocType, GroupStatus, Sensitivity
 from caseboard.domain.models import (
+    CaseSummary,
     Charge,
     Communication,
     ComparisonGroup,
@@ -24,7 +25,7 @@ from caseboard.validate.critical import CRITICAL_GLANCE
 from caseboard.web.workspace.casefile import build_casefile
 from caseboard.web.workspace.comms import comm_meta, comm_sub
 from caseboard.web.workspace.extract_view import build_extract_detail
-from caseboard.web.workspace.posture import critical_rank, posture_sentence
+from caseboard.web.workspace.posture import critical_rank
 from caseboard.web.workspace.query import PROVIDERS, WorkspaceQuery
 
 _MONTHS = [name.upper() for name in month_abbr if name]
@@ -41,6 +42,7 @@ _LOAD = (
     DocType.portrait,
     DocType.glance,
     DocType.charge,
+    DocType.summary,
 )
 _SECTIONS = (
     ("sensitive", "Before sharing anything", "Things a provider must never see, or that must be fixed first."),
@@ -68,6 +70,7 @@ class Workspace:
         }
         self.has_portrait = bool(loaded[DocType.portrait])
         self.charges = [Charge.model_validate(row) for row in loaded[DocType.charge]]
+        self.summary = _summary_line(loaded[DocType.summary])
         self._glances = {
             item.id: item
             for item in (ItemGlance.model_validate(row) for row in loaded[DocType.glance])
@@ -146,14 +149,8 @@ class Workspace:
             ]
         return cells
 
-    def _posture(self, critical: list[dict]) -> str:
-        return posture_sentence(
-            name=self._value("patient.name"),
-            index=self._value("case.index_number"),
-            prior=self._value("case.prior_index_number"),
-            accident=_pretty_date(self._value("accident.datetime") or self._value("accident.date")),
-            open_codes=[item["code"] for item in critical],
-        )
+    def _posture(self, _critical: list[dict]) -> str:
+        return self.summary
 
     def _tabs(self, open_count: int) -> list[dict]:
         if self.query.firm:
@@ -658,6 +655,12 @@ def _provider_name(blob: str) -> str:
 
 def _blob(*parts: str) -> str:
     return " ".join(part for part in parts if part)
+
+
+def _summary_line(rows: list[dict]) -> str:
+    if not rows:
+        return ""
+    return CaseSummary.model_validate(rows[0]).line
 
 
 def _title(key: str) -> str:

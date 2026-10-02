@@ -175,6 +175,13 @@ class ItemGlance(BaseModel):
     urgent: bool = False
 
 
+class CaseSummary(BaseModel):
+    """One sentence for the lawyer opening the file. Not the header facts."""
+
+    id: str
+    line: str
+
+
 class Charge(BaseModel):
     """One dollar amount printed on a bill. The figure is copied, not computed."""
 

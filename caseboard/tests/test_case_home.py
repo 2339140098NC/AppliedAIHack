@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from caseboard.domain.enums import DocType, EventKind, SegmentKind, Sensitivity
-from caseboard.domain.models import Evidence, Facet, Segment, TimelineEvent
+from caseboard.domain.models import CaseSummary, Evidence, Facet, Segment, TimelineEvent
 from caseboard.store.documents import DocumentStore
 from caseboard.validate.checks import run_checks
 from caseboard.validate.runner import ValidationRunner
@@ -98,8 +98,16 @@ def test_firm_home_leads_with_posture_and_hides_it_from_a_provider(tmp_path: Pat
     )
     ValidationRunner(store).run()
     firm = Workspace(store, _query()).context()
-    assert "Justin W. Sapini" in firm["posture"]
-    assert "160000/2024" in firm["posture"]
+    assert firm["posture"] == ""
+    assert firm["plate"][0]["v"] == "Justin W. Sapini"
+    assert firm["plate"][1]["v"] == "160000/2024"
+    store.put(
+        DocType.summary,
+        "case",
+        CaseSummary(id="case", line="Surgery is waiting on a re-exam, and the papers still disagree on the address."),
+    )
+    firm = Workspace(store, _query()).context()
+    assert firm["posture"] == "Surgery is waiting on a re-exam, and the papers still disagree on the address."
     ssn = next(item for item in firm["critical"] if item["code"] == "critical_ssn")
     assert "tab=todo" in ssn["todo_href"]
     assert f"sel={ssn['id']}" in ssn["todo_href"]

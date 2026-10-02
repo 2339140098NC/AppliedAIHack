@@ -1,5 +1,5 @@
 {% if firm %}
-<p class="posture">{{ posture }}{% if urgent_count %} · {{ urgent_count }} need attention{% elif critical %} · {{ critical|length }} open{% endif %}</p>
+{% if posture %}<p class="posture">{{ posture }}</p>{% endif %}
 {% if urgent %}
 <ul class="glance">
   {% for item in urgent %}

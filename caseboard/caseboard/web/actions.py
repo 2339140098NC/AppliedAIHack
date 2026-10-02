@@ -9,6 +9,7 @@ from caseboard.extract.bills import read_bills
 from caseboard.extract.corpus import CorpusExtractor
 from caseboard.extract.gemini import GeminiExtractor
 from caseboard.glance.classify import classify_timeline
+from caseboard.glance.summary import write_summary
 from caseboard.store.documents import DocumentStore
 from caseboard.validate.runner import ValidationRunner
 from caseboard.web.jobs import Job
@@ -70,6 +71,8 @@ class Actions:
                 self._settings.gemini_model,
                 self._job.update,
             )
+            self._job.update("Writing the case summary")
+            write_summary(self._store, self._settings.gemini_api_key, self._settings.gemini_model)
             self._job.finish(f"Read {count} timeline items.")
         except Exception as exc:
             self._job.finish("Reading the timeline failed", error=str(exc))

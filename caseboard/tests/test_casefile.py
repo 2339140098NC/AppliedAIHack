@@ -50,6 +50,14 @@ def _facet(facet_id: str, key: str, value: str, document: str) -> Facet:
     )
 
 
+def test_summary_stays_one_sentence() -> None:
+    from caseboard.glance.summary import clip_summary
+
+    line = clip_summary(" ".join(["word"] * 40))
+    assert len(line.split()) == 32
+    assert line.endswith(".")
+
+
 def test_bill_reading_keeps_a_stated_total_and_skips_a_blank_amount() -> None:
     rows = charges_from(
         "bill.pdf",
