@@ -170,7 +170,7 @@ def _named(facets: list[Facet], key: str, role: str) -> list[dict]:
 def _merge_people(rows: list[dict]) -> list[dict]:
     merged: dict[str, dict] = {}
     for row in rows:
-        slot = merged.setdefault(_key(row["name"]), {
+        slot = merged.setdefault(_person_key(row["name"]), {
             "name": row["name"],
             "roles": [],
             "files": set(),
@@ -204,7 +204,7 @@ def _merge_people(rows: list[dict]) -> list[dict]:
 
 
 def _touch(bucket: dict[str, dict], name: str, role: str, segment: Segment) -> None:
-    slot = bucket.setdefault(_key(name), {
+    slot = bucket.setdefault(_person_key(name), {
         "name": name,
         "role": role,
         "meta": "",
@@ -257,12 +257,29 @@ def _first_cite(facets: list[Facet], key: str) -> tuple[str, int]:
     return "", 1
 
 
+_JUNK_NAME = {
+    "dr", "md", "dc", "pc", "pt", "do", "dds", "np", "pa",
+    "pllc", "llc", "llp", "ny", "nj", "ct",
+}
+
+
 def _split(value: str) -> list[str]:
-    parts = [part.strip() for part in re.split(r"[;,]", value) if part.strip()]
-    if len(parts) > 1 and all(3 <= len(part) <= 60 for part in parts):
-        return parts[:12]
-    text = " ".join(value.split())
-    return [text[:80]] if text else []
+    """Providers are separated by semicolons. A slash joins a practice and a doctor."""
+    names = []
+    for part in value.split(";"):
+        for piece in re.split(r"\s*/\s*", part):
+            text = " ".join(piece.split()).strip(" ,;")
+            if not text or _junk_name(text):
+                continue
+            names.append(text[:120])
+            if len(names) == 12:
+                return names
+    return names
+
+
+def _junk_name(text: str) -> bool:
+    bare = re.sub(r"[^a-z]", "", text.casefold())
+    return bare in _JUNK_NAME
 
 
 def _primary_role(roles: list[str]) -> str:
@@ -307,6 +324,15 @@ def _money(amount: str) -> str:
 
 def _key(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "", value.casefold())
+
+
+def _person_key(value: str) -> str:
+    """Same practice with or without P.C., LLC, or a city in parentheses."""
+    text = value.casefold()
+    text = re.sub(r"\([^)]*\)", " ", text)
+    text = re.sub(r"\b(dr|m\.?d|d\.?c|d\.?o|p\.?c|p\.?t|pllc|llc|llp)\b", " ", text)
+    text = re.sub(r"\b[a-z]\b", " ", text)
+    return re.sub(r"[^a-z0-9]+", "", text)
 
 
 def _title(key: str) -> str:

@@ -50,6 +50,27 @@ def _facet(facet_id: str, key: str, value: str, document: str) -> Facet:
     )
 
 
+def test_provider_names_keep_the_comma_inside_the_name() -> None:
+    listed = (
+        "Advanced Rockland Chiropractic Offices, P.C. / Kevin M. Haggerty, D.C.; "
+        "LHR - Rockland Diagnostic Imaging (New City, NY); P.C."
+    )
+    page = build_casefile(
+        [_facet("hipaa", "hipaa.providers", listed, "hipaa.pdf")],
+        [],
+        [],
+        [],
+        _query(),
+        lambda document, page: "",
+    )
+    names = [row["name"] for group in page["people"] for row in group["rows"]]
+    assert names == [
+        "Advanced Rockland Chiropractic Offices, P.C.",
+        "Kevin M. Haggerty, D.C.",
+        "LHR - Rockland Diagnostic Imaging (New City, NY)",
+    ]
+
+
 def test_summary_stays_one_sentence() -> None:
     from caseboard.glance.summary import clip_summary
 
