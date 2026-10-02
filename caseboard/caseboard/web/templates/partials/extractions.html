@@ -3,8 +3,8 @@
 {% else %}
 <ul class="divide-y divide-border">
   {% for item in extractions %}
-  <li class="flex flex-wrap items-center gap-3 px-4 py-3">
-    <div class="mr-auto min-w-0">
+  <li class="flex items-center gap-3 px-4 py-3">
+    <div class="min-w-0 flex-1">
       <div class="text-sm font-medium">{{ item.title }}</div>
       <div class="truncate text-xs text-muted-foreground">{{ item.filename }}</div>
       <div class="mt-1 flex items-center gap-2">
@@ -12,7 +12,7 @@
         {% if item.when %}<span class="text-xs text-muted-foreground">{{ item.when }}</span>{% endif %}
       </div>
     </div>
-    <div class="flex flex-wrap items-center gap-2">
+    <div class="flex shrink-0 items-center gap-2">
       <a class="inline-flex items-center justify-center rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium shadow-xs hover:bg-accent" href="{{ item.extract_href }}" hx-get="/partials/drawer{{ item.extract_href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ item.extract_href }}">Extracted</a>
       <a class="inline-flex items-center justify-center rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium shadow-xs hover:bg-accent" href="{{ item.href }}" hx-get="/partials/drawer{{ item.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ item.href }}">Open</a>
       <form hx-post="/actions/reextract" hx-target="#status" hx-swap="innerHTML">
