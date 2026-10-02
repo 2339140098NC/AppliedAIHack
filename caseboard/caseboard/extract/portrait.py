@@ -14,6 +14,7 @@ Store = DocumentStore | UpstashDocumentStore
 # Fractions of the photo-id scan. They frame the headshot and leave the card text out.
 _HEADSHOT = (0.133, 0.319, 0.350, 0.717)
 PORTRAIT_ID = "client"
+SUPPLIED = "supplied"
 
 
 def is_photo_id(filename: str) -> bool:
@@ -45,11 +46,28 @@ def portrait_png(pdf: bytes) -> bytes:
         document.close()
 
 
+def save_supplied(store: Store, png: bytes) -> None:
+    """Store a headshot that was provided, and leave the photo-id card alone."""
+    _put(store, base64.b64encode(png).decode("ascii"), SUPPLIED)
+
+
 def save_portrait(store: Store, pdf: bytes, filename: str) -> None:
-    """Replace the stored headshot for this case."""
-    encoded = base64.b64encode(portrait_png(pdf)).decode("ascii")
+    """Replace the stored headshot unless a supplied photo is already on the case."""
+    if _is_supplied(store):
+        return
+    _put(store, base64.b64encode(portrait_png(pdf)).decode("ascii"), filename)
+
+
+def _put(store: Store, encoded: str, source_file: str) -> None:
     store.put(
         DocType.portrait,
         PORTRAIT_ID,
-        ClientPortrait(id=PORTRAIT_ID, source_file=filename, png_base64=encoded),
+        ClientPortrait(id=PORTRAIT_ID, source_file=source_file, png_base64=encoded),
     )
+
+
+def _is_supplied(store: Store) -> bool:
+    for row in store.list_type(DocType.portrait):
+        if row.get("id") == PORTRAIT_ID and row.get("source_file") == SUPPLIED:
+            return True
+    return False
