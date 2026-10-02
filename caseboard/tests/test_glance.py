@@ -28,6 +28,7 @@ def test_urgent_reading_replaces_the_label_and_reaches_the_summary(tmp_path: Pat
     context = Workspace(store, _query()).context()
     shown = context["years"][0]["events"][0]
     assert shown["kind"] == "Insurance"
+    assert shown["form"] == "Email"
     assert shown["label"] == "No-fault benefits exhausted"
     assert shown["urgent"] is True
     assert shown["tone"] == "insurance"

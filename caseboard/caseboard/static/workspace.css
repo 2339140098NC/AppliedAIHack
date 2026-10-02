@@ -142,8 +142,12 @@ button, input, select { font: inherit; color: inherit; }
 }
 .year-count { margin-left: auto; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--color-neutral-700); }
 .event {
-  display: grid; grid-template-columns: 52px 18px minmax(0, 1fr) auto; gap: 14px;
+  display: grid; grid-template-columns: 52px 18px 84px minmax(0, 1fr) auto; gap: 14px;
   padding: 14px 10px; border-bottom: 1px solid var(--color-divider); cursor: pointer; align-items: start;
+}
+.event-form {
+  font-family: var(--font-heading); font-weight: 600; font-size: 13px; letter-spacing: .06em;
+  text-transform: uppercase; padding-top: 1px;
 }
 .event:hover { background: var(--color-neutral-200); }
 .event.is-selected { background: var(--color-accent-200); box-shadow: inset 3px 0 0 var(--color-accent); }

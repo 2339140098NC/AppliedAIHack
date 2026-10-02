@@ -224,10 +224,12 @@ class Workspace:
         who = _provider_name(_blob(event.label, event.sensitivity_reason, document, quote))
         kind = _KIND.get(event.kind.value, event.kind.value.replace("_", " ").title())
         sub = event.time or ""
+        record = None
         if document.startswith("clio:"):
             record = self._comms.get(document.removeprefix("clio:"))
             if record:
                 sub = comm_sub(record) or sub
+        form = _record_form(event, record, _segment_at(self.segments, document, page))
         if query.firm and who and not self._glances.get(glance_key(event)):
             kind = f"{kind} · {who}"
         glance = self._glances.get(glance_key(event))
@@ -241,6 +243,7 @@ class Workspace:
             "month": month,
             "day": day,
             "kind": kind,
+            "form": form,
             "tone": _tone(kind),
             "urgent": bool(glance and glance.urgent),
             "label": label,
@@ -671,6 +674,44 @@ def _provider_name(blob: str) -> str:
 
 def _blob(*parts: str) -> str:
     return " ".join(part for part in parts if part)
+
+
+_FORM = {
+    "email": "Email",
+    "note": "Note",
+    "call": "Phone",
+    "phone": "Phone",
+    "message": "Message",
+    "filing": "Filing",
+    "pleading": "Filing",
+    "correspondence": "Letter",
+    "exam": "Exam",
+    "demand": "Demand",
+    "accident": "Accident",
+    "treatment": "Visit",
+    "imaging": "Imaging",
+    "imaging_report": "Imaging",
+    "surgery": "Surgery",
+    "operative_report": "Operative",
+    "discovery": "Discovery",
+    "bill": "Bill",
+    "clinical_note": "Chart",
+    "expert_report": "Expert",
+    "incident_report": "Incident",
+    "hipaa_authorization": "HIPAA",
+    "photo_id": "ID",
+}
+
+
+def _record_form(event: TimelineEvent, record, segment: Segment | None) -> str:
+    """The thing a lawyer scans: email, note, filing. The category stays separate."""
+    if record is not None:
+        return _FORM.get(record.source.value, "Record")
+    if segment is not None:
+        named = _FORM.get(segment.kind.value)
+        if named:
+            return named
+    return _FORM.get(event.kind.value, "Record")
 
 
 def _file_chips(segments: list[Segment], document: str, page: int, query: WorkspaceQuery) -> list[dict]:

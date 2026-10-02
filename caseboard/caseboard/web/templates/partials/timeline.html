@@ -61,8 +61,9 @@
       <div class="spine-line"></div>
       <div class="node {% if event.firm_only %}firm{% endif %} {% if event.conflict %}conflict{% endif %}"></div>
     </div>
+    <div class="event-form">{{ event.form }}</div>
     <div>
-      <div class="event-kind">{% with tone=event.tone %}{% include "partials/mark.html" %}{% endwith %}{{ event.kind }}{% if event.urgent %}<span class="tag urgent">Important</span>{% endif %}</div>
+      <div class="event-kind">{% with tone=event.tone %}{% include "partials/mark.html" %}{% endwith %}{% if event.kind != event.form %}{{ event.kind }}{% endif %}{% if event.urgent %}<span class="tag urgent">Important</span>{% endif %}</div>
       <div class="event-label">{{ event.label }}</div>
       {% if event.sub %}<div class="event-sub">{{ event.sub }}</div>{% endif %}
       {% if event.src %}
