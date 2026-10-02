@@ -1,6 +1,19 @@
 {% if firm %}
-<p class="posture">{{ posture }}{% if critical %} · {{ critical|length }} open{% endif %}</p>
-{% if critical %}
+<p class="posture">{{ posture }}{% if urgent_count %} · {{ urgent_count }} need attention{% elif critical %} · {{ critical|length }} open{% endif %}</p>
+{% if urgent %}
+<ul class="glance">
+  {% for item in urgent %}
+  <li>
+    {% with tone=item.tone %}{% include "partials/mark.html" %}{% endwith %}
+    {% if item.href %}
+    <a href="{{ item.href }}" hx-get="/partials/drawer{{ item.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ item.href }}">{{ item.line }}</a>
+    {% else %}
+    <span>{{ item.line }}</span>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% elif critical %}
 <ul class="glance">
   {% for item in critical %}
   <li>
@@ -24,7 +37,7 @@
     <span class="year-count">{{ year.count }}</span>
   </div>
   {% for event in year.events %}
-  <div class="event {% if event.selected %}is-selected{% endif %} {% if share and event.id in share.held_ids %}is-held{% endif %}"
+  <div class="event {% if event.selected %}is-selected{% endif %} {% if event.urgent %}is-urgent{% endif %} {% if share and event.id in share.held_ids %}is-held{% endif %}"
        {% if event.href %}hx-get="/partials/drawer{{ event.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ event.href }}"{% endif %}>
     <div>
       <div class="event-month">{{ event.month }}</div>
@@ -35,7 +48,7 @@
       <div class="node {% if event.firm_only %}firm{% endif %} {% if event.conflict %}conflict{% endif %}"></div>
     </div>
     <div>
-      <div class="event-kind">{{ event.kind }}</div>
+      <div class="event-kind">{% with tone=event.tone %}{% include "partials/mark.html" %}{% endwith %}{{ event.kind }}{% if event.urgent %}<span class="tag urgent">Important</span>{% endif %}</div>
       <div class="event-label">{{ event.label }}</div>
       {% if event.sub %}<div class="event-sub">{{ event.sub }}</div>{% endif %}
       {% if event.src %}

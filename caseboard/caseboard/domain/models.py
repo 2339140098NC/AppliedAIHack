@@ -166,6 +166,15 @@ class ProviderShare(BaseModel):
     sent_ids: list[str] = Field(default_factory=list)
 
 
+class ItemGlance(BaseModel):
+    """A lawyer's one-line reading of one timeline item."""
+
+    id: str
+    category: str
+    line: str
+    urgent: bool = False
+
+
 class ClientPortrait(BaseModel):
     """The client's headshot. The rest of the photo ID stays out of this record."""
 

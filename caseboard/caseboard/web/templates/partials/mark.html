@@ -1,0 +1,23 @@
+<span class="mark tone-{{ tone }}" aria-hidden="true">
+  {% if tone == "accident" %}
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 16 9 7l3 5 2-3 6 7"></path><path d="M3 19h18"></path></svg>
+  {% elif tone == "imaging" %}
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="7"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+  {% elif tone == "surgery" %}
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 4 4 14l6 6 10-10"></path><path d="m15 5 4 4"></path></svg>
+  {% elif tone == "bill" %}
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 3h10v18l-2-1.5L13 21l-2-1.5L9 21l-2-1.5L5 21V3h2Z"></path><path d="M9 8h6M9 12h6"></path></svg>
+  {% elif tone == "pleading" %}
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 3h7l5 5v13H7Z"></path><path d="M14 3v5h5"></path></svg>
+  {% elif tone == "discovery" %}
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="6"></circle><path d="m20 20-3.5-3.5"></path></svg>
+  {% elif tone == "expert" %}
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3 4 7v5c0 5 3.5 7.5 8 9 4.5-1.5 8-4 8-9V7Z"></path></svg>
+  {% elif tone == "insurance" %}
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3 5 6v6c0 4 3 6.5 7 8 4-1.5 7-4 7-8V6Z"></path><path d="M9 12h6"></path></svg>
+  {% elif tone == "court" %}
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 20h16"></path><path d="M6 20V10M10 20V10M14 20V10M18 20V10"></path><path d="M3 10h18L12 4Z"></path></svg>
+  {% else %}
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 21a8 8 0 0 0 8-8c0-4-3-7-5-9-1 3-4 4-4 4s-1-2-2-4c-2 2-5 5-5 9a8 8 0 0 0 8 8Z"></path></svg>
+  {% endif %}
+</span>

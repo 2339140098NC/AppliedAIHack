@@ -11,10 +11,12 @@ from caseboard.domain.models import (
     Finding,
     Segment,
     SourceFile,
+    ItemGlance,
     TimelineEvent,
 )
 from caseboard.extract.compare import merge_same
 from caseboard.extract.stamp import extract_stamp
+from caseboard.glance.text import glance_key
 from caseboard.share.packet import load_share, share_status
 from caseboard.store.documents import DocumentStore
 from caseboard.validate.critical import CRITICAL_GLANCE
@@ -50,6 +52,10 @@ class Workspace:
             for item in (Communication.model_validate(row) for row in store.list_type(DocType.communication))
         }
         self.has_portrait = bool(store.list_type(DocType.portrait))
+        self._glances = {
+            item.id: item
+            for item in (ItemGlance.model_validate(row) for row in store.list_type(DocType.glance))
+        }
         self._conflict_pages = {
             (cite.document, cite.page)
             for group in self.groups
@@ -64,6 +70,7 @@ class Workspace:
         open_items = [item for item in findings if not item["done"]]
         critical = [item for item in open_items if str(item["code"]).startswith("critical_")]
         critical.sort(key=lambda item: critical_rank(item["code"]))
+        attention = self._attention(query) if query.firm else []
         return {
             "query": query,
             "firm": query.firm,
@@ -73,6 +80,8 @@ class Workspace:
             "tabs": self._tabs(len(open_items)),
             "posture": self._posture(critical) if query.firm else "",
             "critical": critical if query.firm else [],
+            "urgent": attention[:6],
+            "urgent_count": len(attention),
             "extract_detail": build_extract_detail(self.segments, self.facets, self.events, query),
             "years": self._years(query),
             "groups": self._groups(query),
@@ -181,14 +190,22 @@ class Workspace:
             record = self._comms.get(document.removeprefix("clio:"))
             if record:
                 sub = comm_sub(record) or sub
-        if query.firm and who:
+        if query.firm and who and not self._glances.get(glance_key(event)):
             kind = f"{kind} · {who}"
+        glance = self._glances.get(glance_key(event))
+        if glance:
+            kind = glance.category
+            label = glance.line
+        else:
+            label = event.label
         return {
             "id": event.id,
             "month": month,
             "day": day,
             "kind": kind,
-            "label": event.label,
+            "tone": _tone(kind),
+            "urgent": bool(glance and glance.urgent),
+            "label": label,
             "sub": sub,
             "src": self._source_label(document, page, query),
             "href": query.url(document=document, page=page, quote=quote, sel=event.id) if document else "",
@@ -201,6 +218,29 @@ class Workspace:
             "firm_only": event.sensitivity == Sensitivity.firm_only,
             "vis_label": "Firm only" if event.sensitivity == Sensitivity.firm_only else f"Shared with {who or 'providers'}",
         }
+
+    def _attention(self, query: WorkspaceQuery) -> list[dict]:
+        """Urgent readings, newest first, for the summary."""
+        rows = []
+        for event in self.events:
+            glance = self._glances.get(glance_key(event))
+            if not glance or not glance.urgent:
+                continue
+            evidence = event.evidence[0] if event.evidence else None
+            document = evidence.document if evidence else ""
+            rows.append({
+                "line": glance.line,
+                "tone": _tone(glance.category),
+                "date": event.date or "",
+                "href": query.url(
+                    document=document,
+                    page=evidence.page if evidence else 1,
+                    quote=evidence.quote if evidence else "",
+                    sel=event.id,
+                ) if document else "",
+            })
+        rows.sort(key=lambda item: item["date"], reverse=True)
+        return rows
 
     def _groups(self, query: WorkspaceQuery) -> list[dict]:
         cards = []
@@ -534,6 +574,33 @@ class Workspace:
             if facet.facet_key == key and facet.value and (self.query.firm or facet.sensitivity == Sensitivity.provider_visible):
                 return facet.value
         return ""
+
+
+def _tone(category: str) -> str:
+    text = category.split("·", 1)[0].strip().lower()
+    known = {
+        "accident": "accident",
+        "treatment": "treatment",
+        "imaging": "imaging",
+        "surgery": "surgery",
+        "bill": "bill",
+        "pleading": "pleading",
+        "discovery": "discovery",
+        "expert": "expert",
+        "insurance": "insurance",
+        "client": "client",
+        "court": "court",
+        "phone": "client",
+        "email": "client",
+        "note": "client",
+        "message": "client",
+        "filing": "court",
+        "correspondence": "client",
+        "exam": "expert",
+        "demand": "discovery",
+        "call": "client",
+    }
+    return known.get(text, "treatment")
 
 
 def _segment_at(segments: list[Segment], document: str, page: int) -> Segment | None:

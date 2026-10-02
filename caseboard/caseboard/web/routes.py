@@ -135,6 +135,11 @@ def sync(request: Request) -> HTMLResponse:
     return _start(request, "sync", request.app.state.actions.sync)
 
 
+@router.post("/actions/glance", response_class=HTMLResponse)
+def glance(request: Request) -> HTMLResponse:
+    return _start(request, "glance", request.app.state.actions.glance)
+
+
 @router.post("/actions/validate", response_class=HTMLResponse)
 def validate(request: Request) -> HTMLResponse:
     _open_session(request)

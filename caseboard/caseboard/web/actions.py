@@ -7,6 +7,7 @@ from caseboard.config import Settings
 from caseboard.errors import CaseboardError
 from caseboard.extract.corpus import CorpusExtractor
 from caseboard.extract.gemini import GeminiExtractor
+from caseboard.glance.classify import classify_timeline
 from caseboard.store.documents import DocumentStore
 from caseboard.validate.runner import ValidationRunner
 from caseboard.web.jobs import Job
@@ -58,6 +59,19 @@ class Actions:
             )
         except Exception as exc:
             self._job.finish("Clio sync failed", error=str(exc))
+
+    def glance(self) -> None:
+        """Read the stored timeline text and write a one-line category for each item."""
+        try:
+            count = classify_timeline(
+                self._store,
+                self._settings.gemini_api_key,
+                self._settings.gemini_model,
+                self._job.update,
+            )
+            self._job.finish(f"Read {count} timeline items.")
+        except Exception as exc:
+            self._job.finish("Reading the timeline failed", error=str(exc))
 
     def validate(self) -> int:
         if self._job.snapshot()["running"]:

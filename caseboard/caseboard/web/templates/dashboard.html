@@ -6,7 +6,7 @@
   <title>Proximate</title>
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/industry.css">
-  <link rel="stylesheet" href="/static/workspace.css?v=supplied-photo">
+  <link rel="stylesheet" href="/static/workspace.css?v=glance-marks">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap">
   <script src="/static/htmx.min.js"></script>
 </head>
@@ -77,6 +77,9 @@
         {% else %}
         <a class="btn btn-secondary" href="/clio/connect">Connect Clio</a>
         {% endif %}
+        <form hx-post="/actions/glance" hx-target="#status" hx-swap="innerHTML">
+          <button class="btn btn-secondary" type="submit" {% if not gemini_ready %}disabled{% endif %}>Read timeline</button>
+        </form>
         <form hx-post="/actions/validate" hx-target="#status" hx-swap="innerHTML">
           <button class="btn btn-primary blueprint" type="submit">Run validations<i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i></button>
         </form>
