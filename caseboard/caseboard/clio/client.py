@@ -28,6 +28,10 @@ class ClioClient:
         self._host = host
         self._http = httpx.Client(base_url=host, timeout=60, trust_env=False)
 
+    @property
+    def tokens(self) -> TokenStore:
+        return self._tokens
+
     def authorize_url(self) -> str:
         self._require_app()
         state = issue_state(self._settings.clio_client_secret)
