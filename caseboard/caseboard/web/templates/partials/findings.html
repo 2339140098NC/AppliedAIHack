@@ -1,0 +1,18 @@
+{% if not findings %}
+<p class="empty">No findings. Run validations after an extract or a Clio sync.</p>
+{% else %}
+<ul class="findings">
+  {% for finding in findings %}
+  <li>
+    <span class="stamp {{ finding.severity }}">{{ finding.severity }}</span>
+    <div>
+      <p class="label">{{ finding.message }}</p>
+      <p class="meta">{{ finding.code }}</p>
+      {% for cite in finding.evidence %}
+      <p class="cite">{{ cite.document }} p.{{ cite.page }}{% if cite.quote %} — {{ cite.quote }}{% endif %}</p>
+      {% endfor %}
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}

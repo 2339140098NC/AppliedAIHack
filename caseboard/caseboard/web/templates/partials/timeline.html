@@ -1,0 +1,18 @@
+{% if not events %}
+<p class="empty">No events for this audience yet.</p>
+{% else %}
+<ol class="timeline">
+  {% for event in events %}
+  <li>
+    <time>{{ event.date or "Undated" }}{% if event.time %} {{ event.time }}{% endif %}</time>
+    <div>
+      <p class="label">{{ event.label }}</p>
+      <p class="meta">{{ event.kind }} · {{ event.sensitivity_reason }}</p>
+      {% for cite in event.evidence %}
+      <p class="cite">{{ cite.document }} p.{{ cite.page }}{% if cite.quote %} — {{ cite.quote }}{% endif %}</p>
+      {% endfor %}
+    </div>
+  </li>
+  {% endfor %}
+</ol>
+{% endif %}

@@ -1,0 +1,23 @@
+{% if not groups %}
+<p class="empty">No comparison groups for this audience yet.</p>
+{% else %}
+<ul class="groups">
+  {% for group in groups %}
+  <li>
+    <header>
+      <h3>{{ group.facet_key }}</h3>
+      <span class="stamp {{ group.status }}">{{ group.status }}</span>
+    </header>
+    {% for entry in group.entries %}
+    <article>
+      <p class="value">{{ entry.value if entry.value else "Blank" }}</p>
+      <p class="meta">{{ entry.authored_by or "Unknown author" }}</p>
+      {% for cite in entry.evidence %}
+      <p class="cite">{{ cite.document }} p.{{ cite.page }}{% if cite.quote %} — {{ cite.quote }}{% endif %}</p>
+      {% endfor %}
+    </article>
+    {% endfor %}
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}

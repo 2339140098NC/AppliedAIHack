@@ -1,0 +1,12 @@
+<p class="status {% if job.running %}running{% endif %}">
+  {{ job.message }}
+  {% if counts %}
+  · {{ counts.get('facet', 0) }} facets
+  · {{ counts.get('timeline_event', 0) }} events
+  · {{ counts.get('validation', 0) }} findings
+  · {{ counts.get('communication', 0) }} comms
+  {% endif %}
+</p>
+{% if job.error %}
+<p class="error">{{ job.error }}</p>
+{% endif %}
