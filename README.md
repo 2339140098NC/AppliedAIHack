@@ -1,96 +1,521 @@
+
 # Proximate
 
-Workspace for the Sapini matter. Firm users read a timeline, compare facts that disagree, and work validation findings. A provider view shows only that provider's own records.
+### Evidence-aware AI workspace for complex case records
 
-PDFs are extracted in one Gemini call per file. Phone calls, emails, and notes come from Clio. Both land in a SQLite document store, and Python validations run against that store.
+**Proximate** transforms fragmented case records into a structured,
+source-linked workspace where teams can understand what happened,
+identify conflicts, track unresolved work, and review evidence without
+losing provenance.
 
-```mermaid
-flowchart LR
-  pdfs[Sapini PDFs] --> gemini[Gemini extract]
-  clio[Clio Manage] --> sync[Communications sync]
-  gemini --> store[(SQLite JSON store)]
-  sync --> store
-  store --> checks[Validations]
-  checks --> board[Firm / provider workspace]
-  store --> board
+> **Evidence → Timeline → Conflicts → Actions**
+
+## 🚀 Live Demo
+
+**Live application:**
+https://appliedaihack.vercel.app/?view=firm&provider=sportscare&tab=timeline
+
+**GitHub repository:** https://github.com/2339140098NC/AppliedAIHack
+
+------------------------------------------------------------------------
+
+## 🎯 The Problem
+
+Complex cases contain PDFs, emails, phone calls, notes, medical records,
+expert reports, billing records, and discovery communications.
+
+The challenge is not simply finding information. Teams need to answer:
+
+-   What actually happened?
+-   When did it happen?
+-   Which source supports the fact?
+-   Do different records disagree?
+-   What evidence is still missing?
+-   What work is still unresolved?
+-   What changed since the last review?
+
+**Proximate turns fragmented records into a connected case workspace.**
+
+------------------------------------------------------------------------
+
+## 💡 What Proximate Does
+
+Proximate combines document extraction, Clio communications, evidence
+provenance, timeline intelligence, validation checks, and role-aware
+views.
+
+``` text
+                 CASE RECORDS
+                      │
+          ┌───────────┴───────────┐
+          │                       │
+       PDFs                    Clio
+          │               emails / calls /
+          │                  notes
+          └───────────┬───────────┘
+                      ↓
+             AI EXTRACTION
+                      ↓
+            STRUCTURED STORE
+                      ↓
+        ┌─────────────┼─────────────┐
+        ↓             ↓             ↓
+     Timeline      Evidence      Validations
+        │             │             │
+        └─────────────┼─────────────┘
+                      ↓
+              CASE WORKSPACE
+                      ↓
+             ACTIONABLE TO-DOS
 ```
 
-## Run it
+The key design principle is **traceability**: generated or normalized
+information remains connected to its underlying source.
 
-Requires Python 3.12.
+------------------------------------------------------------------------
 
-```bash
+## ✨ Key Features
+
+### 1. Unified Case Timeline
+
+The Timeline combines:
+
+-   Clio emails, phone calls, notes, and messages
+-   PDF-derived events
+-   Expert records
+-   Discovery activity
+-   Court activity
+-   Insurance activity
+-   Surgery / treatment events
+-   Billing activity
+
+The current live case displays **44 events for 2026**, including Clio
+activity and document-backed events.
+
+### 2. Evidence & Source Provenance
+
+Evidence can retain:
+
+-   Document name
+-   Page number
+-   Source type
+-   Provider
+-   Clio communication
+-   Firm-only visibility
+
+PDF-derived events can point back to the relevant document page.
+
+### 3. Conflict Detection
+
+The live workspace currently surfaces findings such as:
+
+-   Addresses disagree
+-   Location disagrees
+-   Scene report says no injury
+-   Defense exam contradicts treatment
+-   Two index numbers
+-   Expert report has two dates
+-   Date of birth is blank
+-   Imagers missing from HIPAA
+-   Documents named but missing
+
+Conflicts are surfaced for human review rather than silently resolved.
+
+### 4. Validation → To-Do Workflow
+
+Python validations run against the structured document store.
+
+``` text
+Structured evidence
+       ↓
+Validation checks
+       ↓
+Finding
+       ↓
+To-do
+       ↓
+Human review
+       ↓
+Resolved
+```
+
+Running validations rebuilds the To-do list from the current case state.
+A checked-off finding remains resolved if the same validation finding
+appears again.
+
+### 5. Firm View
+
+The Firm workspace provides the full case picture:
+
+-   Overview
+-   Timeline
+-   Evidence
+-   To-do items
+-   Extractions
+-   Validation controls
+-   Clio communications
+-   Firm-only information
+
+The current case dashboard includes **31 PDFs, 361 pages, 9 treating
+providers, 15 to-dos, and 11 critical to-dos**.
+
+### 6. Provider View
+
+Provider mode limits the workspace to records belonging to the selected
+provider.
+
+Supported provider examples include:
+
+-   Montefiore Nyack
+-   Advanced Rockland Chiropractic
+-   SportsCare
+-   New Horizon
+
+Provider view removes firm-only controls and limits the visible clinical
+record to the selected provider's information.
+
+### 7. Clio Synchronization
+
+Proximate can synchronize:
+
+-   Phone calls
+-   Emails
+-   Notes
+-   Messages
+
+The synchronization compares Clio's PDF list with PDFs already stored by
+the application. This lets the Timeline update without waiting for full
+PDF extraction.
+
+### 8. Incremental PDF Extraction
+
+PDF extraction uses Gemini. Only new or updated files are sent for
+extraction. Unchanged files are left alone.
+
+The application also tracks extraction state and can identify when a
+schema or prompt change requires re-extraction.
+
+------------------------------------------------------------------------
+
+## 🧠 AI + Deterministic Architecture
+
+Proximate separates AI extraction from deterministic validation.
+
+**AI is used for:** - Extracting structured information from PDFs -
+Converting unstructured documents into usable case data - Identifying
+events and evidence for the workspace
+
+**Application logic is used for:** - Persistence - Validation checks -
+Case state - To-do state - Provider filtering - Source tracking -
+Incremental extraction decisions
+
+``` text
+AI extracts evidence
+        ↓
+Application stores evidence
+        ↓
+Rules validate the evidence
+        ↓
+Human reviews findings
+```
+
+------------------------------------------------------------------------
+
+## 🏗️ Architecture
+
+``` text
+                    ┌──────────────────────┐
+                    │       Clio Manage    │
+                    │ emails / calls /     │
+                    │ notes / messages     │
+                    └──────────┬───────────┘
+                               │
+                               ↓
+┌───────────────┐      ┌───────────────────┐
+│ Case PDFs     │ ───→ │ Gemini Extraction │
+└───────────────┘      └─────────┬─────────┘
+                                 │
+                                 ↓
+                       ┌──────────────────┐
+                       │ Document Store   │
+                       │ SQLite / JSON    │
+                       └────────┬─────────┘
+                                │
+              ┌─────────────────┼─────────────────┐
+              ↓                 ↓                 ↓
+        ┌──────────┐      ┌───────────┐     ┌────────────┐
+        │ Timeline │      │ Evidence  │     │ Validation │
+        └────┬─────┘      └─────┬─────┘     └──────┬─────┘
+             │                  │                  │
+             └──────────────────┼──────────────────┘
+                                ↓
+                     ┌────────────────────┐
+                     │ Case Workspace     │
+                     │ Firm / Provider    │
+                     └────────────────────┘
+```
+
+------------------------------------------------------------------------
+
+## 🛠️ Technology Stack
+
+  Layer                    Technology
+  ------------------------ ------------------------------
+  Backend                  FastAPI
+  AI extraction            Google Gemini / Google GenAI
+  PDF processing           PyMuPDF
+  Data validation          Python
+  Data modeling            Pydantic
+  Frontend interaction     HTMX + Jinja2
+  Local persistence        SQLite / JSON
+  Production persistence   Upstash Redis
+  HTTP / integrations      HTTPX
+  Server                   Uvicorn
+  Deployment               Vercel
+  Testing                  Pytest
+
+The repository targets **Python 3.12+**.
+
+------------------------------------------------------------------------
+
+## 📁 Repository Structure
+
+``` text
+AppliedAIHack/
+├── caseboard/
+│   ├── caseboard/                     # FastAPI application
+│   ├── tests/                         # Validation tests
+│   ├── design_handoff_case_workspace/ # Workspace visual specification
+│   ├── .env.example
+│   ├── pyproject.toml
+│   └── Taskfile.yml
+├── app.py                             # Vercel FastAPI entrypoint
+├── requirements.txt
+├── vercel.json
+└── README.md
+```
+
+Sample case PDFs are kept outside Git.
+
+------------------------------------------------------------------------
+
+## ⚙️ Run Locally
+
+### Requirements
+
+-   Python 3.12+
+-   Gemini API key
+-   Clio Manage credentials if using Clio synchronization
+-   Task (optional)
+
+### Clone
+
+``` bash
+git clone https://github.com/2339140098NC/AppliedAIHack.git
+cd AppliedAIHack
+```
+
+### Enter the application
+
+``` bash
 cd caseboard
+```
+
+### Configure environment
+
+``` bash
 cp .env.example .env
+```
+
+Configure the required environment variables.
+
+### Install
+
+With Task:
+
+``` bash
 task install
+```
+
+Without Task:
+
+``` bash
+python3 -m venv .venv
+.venv/bin/pip install -e ".[dev]"
+```
+
+### Run
+
+With Task:
+
+``` bash
 task up
 ```
 
-The board is at http://127.0.0.1:8765/. `task test` runs the validation tests.
+Without Task:
 
-If `task` is not installed, the same commands are:
-
-```bash
-python3 -m venv .venv
-.venv/bin/pip install -e ".[dev]"
+``` bash
 .venv/bin/uvicorn caseboard.main:app --host 127.0.0.1 --port 8765
 ```
 
-## Configuration
+Open `http://127.0.0.1:8765/`.
 
-Copy `caseboard/.env.example` to `caseboard/.env`. None of those values are committed.
+------------------------------------------------------------------------
 
-| Variable | What it does |
-|---|---|
-| `GEMINI_API_KEY` | Used when **Extract PDFs** or **Sync Clio** sends a file URL to Gemini. The model is `gemini-3.8-flash`. |
-| `CLIO_CLIENT_ID` / `CLIO_CLIENT_SECRET` | Clio Manage app key and secret. |
-| `CLIO_REDIRECT_URI` | Must match the redirect registered on the Clio app, including port and path. The app accepts `/callback` and `/clio/callback`. |
-| `CLIO_REGION_HOST` | `https://app.clio.com` for the US firm. |
-| `CLIO_MATTER_ID` | Matter to sync. If empty, the sync looks for the one Justin Sapini matter. |
-| `CORPUS_DIR` | Folder of PDFs. Leave it blank to use `../Sapini documents`. |
+## 🧪 Testing
 
-The Clio app needs read access for Matters, Communications, and Notes. Permissions are fixed when someone approves the app, so turn them on and click **Save** before connecting. If a token still cannot read data, remove the app under Clio's My integrations and connect again.
+Run:
 
-The process has to listen on the same host and port as `CLIO_REDIRECT_URI`. `task up` uses port 8765.
-
-## What the board does
-
-**Firm** is the default. Timeline, Evidence, and To-do are the three tabs. The page on the right is the cited PDF.
-
-- **Sync Clio** stores phone calls, emails, notes, and messages, then compares Clio's PDF list to the PDFs already saved. It records new names and drops files Clio no longer has. It does not send files to Gemini, so the timeline shows up without waiting on extraction.
-- **Extract PDFs** sends only new or updated files to Gemini by Clio's file URL. Unchanged files are left alone. **Extractions** opens the list of those files, shows when each was extracted, and can re-extract one file even when Clio's version has not changed. A schema or prompt change marks a finished file "Schema changed" once it has been extracted with an older stamp. Nothing is uploaded or kept.
-- **Run validations** rebuilds the to-do list from the store. Checking an item off keeps that finding resolved if the same check comes back.
-
-**Provider** drops the firm tabs, the action buttons, and anything marked firm-only. Pick Montefiore Nyack, Advanced Rockland Chiropractic, SportsCare, or New Horizon. That view only includes clinical records that belong to the selected provider.
-
-## Layout
-
-```
-caseboard/
-├── caseboard/          # FastAPI app, HTMX templates, extract / Clio / validations
-├── tests/
-├── design_handoff_case_workspace/   # visual spec for the workspace
-├── .env.example
-└── Taskfile.yml
+``` bash
+task test
 ```
 
-The sample PDFs stay outside git, in `Sapini documents/` next to `caseboard/`.
+or:
 
-## Deploy
+``` bash
+.venv/bin/pytest
+```
 
-Pushes to `main` on [AppliedAIHack](https://github.com/2339140098NC/AppliedAIHack) deploy through Vercel. The repo root `app.py` is the FastAPI entry. Vercel installs `requirements.txt`.
+------------------------------------------------------------------------
 
-On Vercel the filesystem is read-only except `/tmp`. Case records and the Clio token live in Upstash Redis when `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are set, so a new instance keeps the timeline, the extracts, and the Clio login. The browser cookie still carries the token as a backup. Without those two variables the app falls back to the local SQLite file and `clio-token.json`. Set these in the Vercel project (Project → Settings → Environment Variables), using the same values as `caseboard/.env`:
+## 🔐 Configuration
 
-| Variable | Production value |
-|---|---|
-| `GEMINI_API_KEY` | Same key as local. |
-| `CLIO_CLIENT_ID` / `CLIO_CLIENT_SECRET` | Same app key and secret. |
-| `CLIO_REDIRECT_URI` | `https://<your-project>.vercel.app/callback` |
-| `CLIO_REGION_HOST` | `https://app.clio.com` |
-| `CLIO_MATTER_ID` | `1811189963` |
-| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | From the Upstash Redis database (REST). |
+Important environment variables:
 
-Register that callback URL on the Clio app as well. If `CLIO_REDIRECT_URI` is left blank, the app uses `https://$VERCEL_PROJECT_PRODUCTION_URL/callback`.
+  Variable                     Purpose
+  ---------------------------- ----------------------------
+  `GEMINI_API_KEY`             Gemini PDF extraction
+  `CLIO_CLIENT_ID`             Clio application client ID
+  `CLIO_CLIENT_SECRET`         Clio application secret
+  `CLIO_REDIRECT_URI`          OAuth callback URL
+  `CLIO_REGION_HOST`           Clio region / host
+  `CLIO_MATTER_ID`             Matter to synchronize
+  `CORPUS_DIR`                 PDF corpus location
+  `UPSTASH_REDIS_REST_URL`     Production Redis URL
+  `UPSTASH_REDIS_REST_TOKEN`   Production Redis token
 
-Every Clio communication is firm-only. With Upstash configured, a new instance keeps the saved timeline and extracts. **Extract PDFs** is the slow step: the first run reads every file, and a later run only reads files Clio has changed. A pass longer than the function limit can be cut off; the next extract continues with the files that were saved.
+**Never commit credentials or `.env` files.**
+
+------------------------------------------------------------------------
+
+## ☁️ Deployment
+
+The application is deployed on Vercel.
+
+The repository uses `app.py` as the Vercel FastAPI entry point and
+installs production dependencies from `requirements.txt`.
+
+For production persistence, Upstash Redis stores case records and the
+Clio token so application instances can retain timeline, extraction, and
+authentication state.
+
+------------------------------------------------------------------------
+
+## 🔭 Future Roadmap
+
+### Evidence Intelligence
+
+-   Semantic search across the case
+-   Citation-backed natural-language questions
+-   Evidence confidence and source quality indicators
+-   Evidence graph connecting facts, sources, providers, dates, and
+    treatments
+
+### Timeline Intelligence
+
+-   Automatic event clustering
+-   Chronology generation
+-   Timeline anomaly detection
+-   "What changed since last review?"
+-   Gap detection in treatment and case activity
+
+### Validation
+
+-   More cross-document consistency checks
+-   Temporal consistency checks
+-   Missing-evidence detection
+-   Provider / treatment consistency checks
+-   Duplicate and stale-record detection
+-   Configurable validation rules
+
+### Workflow Automation
+
+-   Deadline and obligation detection
+-   Automatic task creation
+-   Follow-up reminders
+-   Outstanding discovery tracking
+-   Provider follow-up workflows
+
+### AI-Assisted Case Work
+
+-   Citation-backed case chronology
+-   Medical chronology
+-   Evidence summaries
+-   Review checklists
+-   Document request drafts
+-   Case-review briefing generation
+
+### Platform
+
+-   Multi-matter support
+-   Multi-tenant architecture
+-   Role-based access control
+-   Document-level permissions
+-   Audit logs
+-   Enterprise security controls
+
+------------------------------------------------------------------------
+
+## 🌟 Why Proximate?
+
+Most AI document tools focus on:
+
+> **"Summarize this document."**
+
+Proximate focuses on:
+
+> **"Connect the evidence, understand the timeline, surface what
+> conflicts, and show what needs attention."**
+
+The goal is not to replace human review. The goal is to make human
+review **faster, more traceable, and more actionable**.
+
+------------------------------------------------------------------------
+
+## 🎬 Demo Flow
+
+Open the live Timeline:
+
+https://appliedaihack.vercel.app/?view=firm&provider=sportscare&tab=timeline
+
+Recommended demo:
+
+1.  Open the case overview.
+2.  Show PDFs, pages, providers, and to-dos.
+3.  Open **Timeline**.
+4.  Show Clio events alongside document-backed events.
+5.  Open a conflict and trace it to its source.
+6.  Switch to **Provider** view.
+7.  Show provider-specific visibility.
+8.  Open **To-do** and show validation findings.
+9.  Run validations.
+10. Show how resolved findings persist.
+
+------------------------------------------------------------------------
+
+## 📌 Project Status
+
+**Working prototype / hackathon project**
+
+The current implementation demonstrates evidence ingestion, timeline
+construction, validation, provenance, incremental extraction, and
+role-aware workspace concepts.
+
+Production deployment would require additional security, privacy,
+access-control, reliability, and compliance hardening.
+
+------------------------------------------------------------------------
+
+## 📄 License
+
+No license has currently been specified for this repository.
