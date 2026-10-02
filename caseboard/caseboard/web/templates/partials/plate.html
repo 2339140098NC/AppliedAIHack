@@ -1,0 +1,8 @@
+<div class="plate">
+  {% for cell in plate %}
+  <div class="plate-cell">
+    <span class="plate-label">{{ cell.k }}</span>
+    <span class="plate-value">{% if cell.live %}<span class="pulse"></span>{% endif %}{{ cell.v }}</span>
+  </div>
+  {% endfor %}
+</div>

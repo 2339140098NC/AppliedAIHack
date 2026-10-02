@@ -1,0 +1,51 @@
+<div class="viewer-head">
+  <div style="min-width:0;margin-right:auto">
+    <div class="viewer-title">{{ viewer.title }}</div>
+    <div class="viewer-sub">{{ viewer.sub }}</div>
+  </div>
+</div>
+{% if viewer.chips %}
+<div class="chips">
+  <span class="event-kind">What's in this file</span>
+  <div class="chip-row">
+    {% for chip in viewer.chips %}
+    <a class="chip {% if chip.active %}is-active{% endif %}" href="{{ chip.href }}" hx-get="/partials/viewer{{ chip.href[1:] }}" hx-target="#viewer" hx-swap="innerHTML" hx-push-url="{{ chip.href }}">
+      <span style="font-size:12px;font-weight:500;white-space:nowrap">{{ chip.label }}</span>
+      <span style="font-size:11px;opacity:.8">{{ chip.range }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% if viewer.document %}
+<div class="toolbar">
+  <a class="btn btn-icon btn-secondary" href="{{ viewer.prev }}" hx-get="/partials/viewer{{ viewer.prev[1:] }}" hx-target="#viewer" hx-swap="innerHTML" hx-push-url="{{ viewer.prev }}" aria-label="Previous page" style="width:30px;height:30px">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m15 18-6-6 6-6"></path></svg>
+  </a>
+  <span class="page-label">{{ viewer.page_label }}</span>
+  <a class="btn btn-icon btn-secondary" href="{{ viewer.next }}" hx-get="/partials/viewer{{ viewer.next[1:] }}" hx-target="#viewer" hx-swap="innerHTML" hx-push-url="{{ viewer.next }}" aria-label="Next page" style="width:30px;height:30px">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m9 18 6-6-6-6"></path></svg>
+  </a>
+  <span class="tag tag-accent seg-tag">{{ viewer.seg_label }}</span>
+</div>
+<div class="page-stage">
+  <div class="page-sheet">
+    {% if viewer.banner %}<div class="page-banner"><span>FILED: NEW YORK COUNTY CLERK</span><span>{{ viewer.banner }}</span></div>{% endif %}
+    {% if viewer.image %}
+    <img src="/pages?document={{ viewer.document | urlencode }}&amp;page={{ viewer.page }}" alt="Page {{ viewer.page }} of {{ viewer.sub }}">
+    {% endif %}
+    {% if viewer.quotes %}
+    <div class="quote-stack">
+      {% for quote in viewer.quotes %}
+      <p class="quote {% if quote.active %}is-active{% endif %}">{{ quote.text }}{% if quote.redacted %} <span class="redact"></span>{% endif %}</p>
+      {% endfor %}
+    </div>
+    {% elif not viewer.image %}
+    <p class="empty">Select a source to open its page.</p>
+    {% endif %}
+    <div class="page-footer">{{ viewer.footer }}</div>
+  </div>
+</div>
+{% else %}
+<div class="page-stage"><p class="empty" style="color:var(--color-accent-300)">Select a source to open its page.</p></div>
+{% endif %}

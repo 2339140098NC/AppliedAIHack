@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/industry-b52e7bd3-0c35-4c59-aaa0-080f24e5e961/styles.css">
+<script src="_ds/industry-b52e7bd3-0c35-4c59-aaa0-080f24e5e961/_ds_bundle.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap">
+<style>
+html,body{margin:0;height:100%;background-color:var(--color-bg);background-image:linear-gradient(color-mix(in srgb,var(--color-accent) 9%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--color-accent) 9%,transparent) 1px,transparent 1px);background-size:28px 28px;color:var(--color-text);font-family:var(--font-body)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+*{box-sizing:border-box}
+a{color:var(--color-accent-700)} a:hover{color:var(--color-accent-900)}
+button{font:inherit;color:inherit}
+</style>
+</helmet>
+<div style="height:100vh;display:flex;flex-direction:column;overflow:hidden">
+
+<header style="background:var(--color-accent-900);color:var(--color-bg);display:flex;flex-direction:column">
+<div class="nav" style="flex-wrap:wrap;gap:var(--space-6);padding:16px 24px 14px">
+  <div style="display:flex;align-items:center;gap:14px;margin-right:auto;min-width:0">
+    <div style="width:38px;height:38px;border:1px solid var(--color-accent-400);display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-weight:600;font-size:15px;color:var(--color-accent-300);flex-shrink:0">JS</div>
+    <div style="display:flex;flex-direction:column;gap:1px;min-width:0">
+      <span style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--color-accent-300)">Matter · Personal injury</span>
+      <div style="font-family:var(--font-heading);font-weight:600;font-size:30px;line-height:1;text-transform:uppercase;letter-spacing:.02em">Sapini v. Ferrara &amp; Metro-North</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-300)">View as</span>
+    <div class="seg" style="border-color:var(--color-accent-700)">
+      <label class="seg-opt"><input type="radio" name="mode" checked="{{ isFirm }}" onChange="{{ setFirm }}" style="position:absolute;opacity:0;width:0;height:0">Firm</label>
+      <label class="seg-opt"><input type="radio" name="mode" checked="{{ isProvider }}" onChange="{{ setProvider }}" style="position:absolute;opacity:0;width:0;height:0">Provider</label>
+    </div>
+    <sc-if value="{{ isProvider }}" hint-placeholder-val="{{ false }}">
+      <select class="input" value="{{ pid }}" onChange="{{ onPid }}" style="width:auto;min-width:220px;background:var(--color-accent-800);color:var(--color-bg);border-color:var(--color-accent-600)">
+        <sc-for list="{{ providerOpts }}" as="p" hint-placeholder-count="4"><option value="{{ p.id }}">{{ p.name }}</option></sc-for>
+      </select>
+    </sc-if>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-300)">Layout</span>
+    <div class="seg" style="border-color:var(--color-accent-700)">
+      <label class="seg-opt"><input type="radio" name="layout" checked="{{ isSplit }}" onChange="{{ setSplit }}" style="position:absolute;opacity:0;width:0;height:0">A · Split</label>
+      <label class="seg-opt"><input type="radio" name="layout" checked="{{ isDrawer }}" onChange="{{ setDrawer }}" style="position:absolute;opacity:0;width:0;height:0">B · Drawer</label>
+    </div>
+  </div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));border-top:1px solid var(--color-accent-800)">
+  <sc-for list="{{ plate }}" as="pl" hint-placeholder-count="5">
+    <div style="display:flex;flex-direction:column;gap:2px;padding:9px 24px;border-right:1px solid var(--color-accent-800)">
+      <span style="font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--color-accent-400)">{{ pl.k }}</span>
+      <span style="font-family:var(--font-heading);font-weight:500;font-size:18px;line-height:1.15;display:flex;align-items:center;gap:7px"><sc-if value="{{ pl.live }}"><span style="width:7px;height:7px;background:var(--color-accent-300);animation:pulse 1.6s infinite"></span></sc-if>{{ pl.v }}</span>
+    </div>
+  </sc-for>
+</div>
+</header>
+
+<sc-if value="{{ isProvider }}" hint-placeholder-val="{{ false }}">
+  <div style="background:repeating-linear-gradient(-45deg,var(--color-accent-200) 0 10px,var(--color-accent-100) 10px 20px);color:var(--color-accent-900);border-bottom:1px solid var(--color-accent-400);padding:10px 24px;display:flex;align-items:center;gap:10px;font-size:14px">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+    <span><strong style="font-weight:600">{{ providerName }}</strong> sees exactly this screen: their own records for Justin Sapini, nothing else.</span>
+  </div>
+</sc-if>
+
+<div style="display:flex;align-items:flex-end;gap:var(--space-6);padding:0 24px;border-bottom:1px solid var(--color-text);flex-wrap:wrap;background:var(--color-bg)">
+  <div style="display:flex;gap:4px">
+    <sc-for list="{{ tabs }}" as="tab" hint-placeholder-count="3">
+      <button onClick="{{ tab.select }}" style="{{ tab.style }}" style-hover="color:var(--color-text)">
+        <span style="font-family:var(--font-body);font-size:11px;font-weight:600;color:var(--color-accent)">{{ tab.num }}</span>
+        <span>{{ tab.label }}</span>
+        <sc-if value="{{ tab.count }}"><span class="tag tag-accent" style="padding:1px 7px">{{ tab.count }}</span></sc-if>
+      </button>
+    </sc-for>
+  </div>
+  <sc-if value="{{ isFirm }}" hint-placeholder-val="{{ true }}">
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px;padding:8px 0">
+      <span style="font-size:12px;color:var(--color-neutral-700)">{{ statusMsg }}</span>
+      <button class="btn btn-secondary" onClick="{{ doExtract }}" style="font-size:13px;padding:6px 12px">Extract PDFs</button>
+      <button class="btn btn-secondary" onClick="{{ doSync }}" style="font-size:13px;padding:6px 12px">Sync Clio</button>
+      <button class="btn btn-primary blueprint" onClick="{{ doValidate }}" style="font-size:13px;padding:6px 12px">Run validations<i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i></button>
+    </div>
+  </sc-if>
+</div>
+
+<div style="{{ mainStyle }}">
+  <div style="{{ contentStyle }}">
+    <div style="{{ contentInner }}">
+
+    <sc-if value="{{ showTimeline }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column">
+        <sc-for list="{{ years }}" as="yr" hint-placeholder-count="3">
+          <div style="display:flex;flex-direction:column">
+            <div style="display:flex;align-items:flex-end;gap:12px;padding:26px 10px 6px;border-bottom:1px solid var(--color-text)">
+              <span style="font-family:var(--font-heading);font-weight:600;font-size:52px;line-height:.85;color:transparent;-webkit-text-stroke:1px var(--color-accent);letter-spacing:.02em;text-transform:uppercase">{{ yr.label }}</span>
+              <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);margin-left:auto">{{ yr.count }}</span>
+            </div>
+            <sc-for list="{{ yr.events }}" as="e" hint-placeholder-count="3">
+              <div onClick="{{ e.open }}" style="{{ e.rowStyle }}" style-hover="background:var(--color-neutral-200)">
+                <div style="display:flex;flex-direction:column;align-items:flex-start">
+                  <span style="font-size:11px;letter-spacing:.1em;color:var(--color-accent-700);font-weight:600">{{ e.mon }}</span>
+                  <span style="font-family:var(--font-heading);font-weight:600;font-size:30px;line-height:1">{{ e.day }}</span>
+                </div>
+                <div style="position:relative;align-self:stretch;margin:-14px 0">
+                  <div style="position:absolute;left:8px;top:0;bottom:0;width:1px;background:var(--color-accent-400)"></div>
+                  <div style="{{ e.nodeStyle }}"></div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+                  <span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-700)">{{ e.kind }}</span>
+                  <span style="font-size:16px;font-weight:500;line-height:1.3;text-wrap:pretty">{{ e.label }}</span>
+                  <sc-if value="{{ e.sub }}"><span style="font-size:13px;color:var(--color-neutral-800)">{{ e.sub }}</span></sc-if>
+                  <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--color-accent-700);margin-top:2px">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path></svg>{{ e.src }}
+                  </span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+                  <sc-if value="{{ e.isConflict }}"><span class="tag" style="background:var(--color-accent-900);color:var(--color-bg)">≠ Conflict</span></sc-if>
+                  <sc-if value="{{ e.isSensitive }}"><span class="tag tag-neutral" style="border:1px solid var(--color-neutral-700)">Sensitive</span></sc-if>
+                  <sc-if value="{{ e.isIncomplete }}"><span class="tag tag-outline" style="border-style:dashed;color:var(--color-accent-700)">{{ e.incompleteLabel }}</span></sc-if>
+                  <sc-if value="{{ e.showVis }}">
+                    <span style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--color-neutral-700)">
+                      <sc-if value="{{ e.firmOnly }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></sc-if>
+                      <sc-if value="{{ e.shared }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg></sc-if>
+                      {{ e.visLabel }}
+                    </span>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showEvidence }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:var(--space-6);padding-top:20px">
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+          <div style="display:flex;flex-direction:column;gap:2px;margin-right:auto">
+            <span style="font-family:var(--font-heading);font-weight:600;font-size:22px">Evidence</span>
+            <span style="font-size:13px;color:var(--color-neutral-700)">Every fact links to the page it came from. Disagreements stay visible.</span>
+          </div>
+          <div class="seg">
+            <label class="seg-opt"><input type="radio" name="evm" checked="{{ evGrouped }}" onChange="{{ setGrouped }}" style="position:absolute;opacity:0;width:0;height:0">Compared</label>
+            <label class="seg-opt"><input type="radio" name="evm" checked="{{ evAll }}" onChange="{{ setAll }}" style="position:absolute;opacity:0;width:0;height:0">All facts</label>
+          </div>
+        </div>
+
+        <sc-if value="{{ evGrouped }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:22px">
+            <sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
+              <div class="blueprint" style="{{ g.cardStyle }}">
+                <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                <div style="display:flex;align-items:flex-start;gap:8px">
+                  <span style="font-family:var(--font-heading);font-weight:600;font-size:19px;line-height:1.15;margin-right:auto">{{ g.title }}</span>
+                  <sc-if value="{{ g.isConflict }}"><span class="tag" style="background:var(--color-accent-900);color:var(--color-bg)">≠ Conflict</span></sc-if>
+                  <sc-if value="{{ g.isIncomplete }}"><span class="tag tag-outline" style="border-style:dashed;color:var(--color-accent-700)">Incomplete</span></sc-if>
+                  <sc-if value="{{ g.isSensitive }}"><span class="tag tag-neutral" style="border:1px solid var(--color-neutral-700)">Sensitive</span></sc-if>
+                  <sc-if value="{{ g.isConsistent }}"><span class="tag tag-accent">✓ Consistent</span></sc-if>
+                  <sc-if value="{{ g.isSingle }}"><span class="tag tag-neutral">One source</span></sc-if>
+                </div>
+                <div style="display:flex;flex-direction:column">
+                  <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="2">
+                    <div style="display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;padding:10px 0;border-top:1px solid var(--color-divider)">
+                      <span style="{{ r.letterStyle }}">{{ r.letter }}</span>
+                      <div style="display:flex;flex-direction:column;gap:5px;min-width:0">
+                        <span style="{{ r.valStyle }}">{{ r.v }}</span>
+                        <div style="display:flex;flex-wrap:wrap;gap:4px 12px">
+                          <sc-for list="{{ r.srcs }}" as="s" hint-placeholder-count="1">
+                            <a href="#" onClick="{{ s.open }}" style="font-size:12px;text-decoration:none;display:flex;align-items:center;gap:4px">
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path></svg>{{ s.label }}
+                            </a>
+                          </sc-for>
+                        </div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+                <sc-if value="{{ g.note }}"><span style="font-size:12px;color:var(--color-neutral-700);text-wrap:pretty">{{ g.note }}</span></sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ evAll }}" hint-placeholder-val="{{ false }}">
+          <table class="table">
+            <thead><tr><th>Fact</th><th>What the page says</th><th>Source</th><th>Who can see it</th></tr></thead>
+            <tbody>
+              <sc-for list="{{ facts }}" as="f" hint-placeholder-count="8">
+                <tr onClick="{{ f.open }}" style="cursor:pointer">
+                  <td style="color:var(--color-neutral-700);font-size:13px">{{ f.fact }}</td>
+                  <td style="font-weight:500">{{ f.v }}</td>
+                  <td style="font-size:12px;color:var(--color-accent-700);white-space:nowrap">{{ f.src }}</td>
+                  <td style="font-size:12px;color:var(--color-neutral-700)">{{ f.vis }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showTodo }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:var(--space-6);padding-top:20px">
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <span style="font-family:var(--font-heading);font-weight:600;font-size:22px">To-do</span>
+          <span style="font-size:13px;color:var(--color-neutral-700)">{{ todoSummary }}</span>
+        </div>
+        <div class="blueprint" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr))">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <sc-for list="{{ todoStats }}" as="st" hint-placeholder-count="3">
+            <div style="{{ st.style }}">
+              <span style="font-family:var(--font-heading);font-weight:600;font-size:56px;line-height:.9">{{ st.n }}</span>
+              <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase">{{ st.label }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <sc-for list="{{ todoSections }}" as="sec" hint-placeholder-count="3">
+          <div style="display:flex;flex-direction:column">
+            <div style="display:flex;flex-direction:column;gap:2px;padding-bottom:8px;border-bottom:1px solid var(--color-text)">
+              <span style="font-family:var(--font-heading);font-weight:600;font-size:17px;letter-spacing:.06em;text-transform:uppercase">{{ sec.title }}</span>
+              <span style="font-size:13px;color:var(--color-neutral-700)">{{ sec.sub }}</span>
+            </div>
+            <sc-for list="{{ sec.items }}" as="t" hint-placeholder-count="4">
+              <div style="display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:12px;padding:14px 4px;border-bottom:1px solid var(--color-divider);align-items:start">
+                <button onClick="{{ t.toggle }}" aria-label="Mark resolved" style="{{ t.boxStyle }}">
+                  <sc-if value="{{ t.done }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></sc-if>
+                </button>
+                <div style="{{ t.textStyle }}">
+                  <span style="font-size:15px;font-weight:500;line-height:1.3">{{ t.title }}</span>
+                  <span style="font-size:13px;color:var(--color-neutral-800);line-height:1.45;text-wrap:pretty">{{ t.detail }}</span>
+                </div>
+                <button class="btn btn-ghost" onClick="{{ t.open }}" style="font-size:12px;white-space:nowrap;gap:4px">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path></svg>{{ t.src }}
+                </button>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showRecords }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:28px;padding-top:20px">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <span style="font-family:var(--font-heading);font-weight:600;font-size:22px">What your records show</span>
+          <div class="blueprint" style="display:flex;flex-direction:column;padding:4px 16px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <sc-for list="{{ pfacts }}" as="f" hint-placeholder-count="3">
+              <div onClick="{{ f.open }}" style="display:grid;grid-template-columns:160px minmax(0,1fr) auto;gap:12px;padding:12px 0;border-bottom:1px solid var(--color-divider);cursor:pointer;align-items:baseline">
+                <span style="font-size:13px;color:var(--color-neutral-700)">{{ f.k }}</span>
+                <span style="font-size:16px;font-weight:500">{{ f.v }}</span>
+                <span style="font-size:12px;color:var(--color-accent-700)">{{ f.src }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <span style="font-family:var(--font-heading);font-weight:600;font-size:22px">Your documents</span>
+          <sc-for list="{{ psegs }}" as="s" hint-placeholder-count="2">
+            <div class="blueprint" style="display:flex;align-items:center;gap:14px;padding:14px 16px">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-accent)"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
+              <div style="display:flex;flex-direction:column;gap:2px;margin-right:auto">
+                <span style="font-size:15px;font-weight:500">{{ s.label }}</span>
+                <span style="font-size:12px;color:var(--color-neutral-700)">{{ s.pages }}</span>
+              </div>
+              <button class="btn btn-secondary" onClick="{{ s.open }}" style="font-size:13px">Open</button>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    </div>
+  </div>
+
+  <sc-if value="{{ viewerVisible }}" hint-placeholder-val="{{ true }}">
+  <aside style="{{ viewerStyle }}">
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:14px 18px;border-bottom:1px solid var(--color-divider)">
+      <div style="display:flex;flex-direction:column;gap:2px;min-width:0;margin-right:auto">
+        <span style="font-family:var(--font-heading);font-weight:600;font-size:19px;line-height:1.15">{{ vw.title }}</span>
+        <span style="font-size:11px;color:var(--color-neutral-700);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ vw.sub }}</span>
+      </div>
+      <sc-if value="{{ isDrawer }}">
+        <button class="btn btn-icon btn-secondary" onClick="{{ closePdf }}" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+      </sc-if>
+    </div>
+    <sc-if value="{{ vw.showSegs }}">
+      <div style="display:flex;flex-direction:column;gap:6px;padding:10px 18px;border-bottom:1px solid var(--color-divider)">
+        <span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-700)">What's in this file</span>
+        <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:2px">
+          <sc-for list="{{ vw.segs }}" as="sg" hint-placeholder-count="3">
+            <button onClick="{{ sg.go }}" style="{{ sg.style }}">
+              <span style="font-size:12px;font-weight:500;white-space:nowrap">{{ sg.label }}</span>
+              <span style="font-size:11px;opacity:.8;white-space:nowrap">{{ sg.range }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 18px;border-bottom:1px solid var(--color-divider)">
+      <button class="btn btn-icon btn-secondary" onClick="{{ vw.prev }}" aria-label="Previous page" style="width:30px;height:30px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></button>
+      <span style="font-size:13px;min-width:110px;text-align:center">{{ vw.pageLabel }}</span>
+      <button class="btn btn-icon btn-secondary" onClick="{{ vw.next }}" aria-label="Next page" style="width:30px;height:30px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg></button>
+      <span class="tag tag-accent" style="margin-left:auto;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ vw.segLabel }}</span>
+    </div>
+    <div style="flex:1;overflow:auto;background-color:var(--color-accent-900);background-image:linear-gradient(var(--color-accent-800) 1px,transparent 1px),linear-gradient(90deg,var(--color-accent-800) 1px,transparent 1px);background-size:28px 28px;padding:28px 22px;display:flex;justify-content:center;align-items:flex-start">
+      <div style="width:100%;max-width:440px;aspect-ratio:8.5/11;flex-shrink:0;background:var(--color-neutral-100);box-shadow:var(--shadow-lg);padding:30px 34px;display:flex;flex-direction:column;gap:9px;position:relative;overflow:hidden">
+        <sc-if value="{{ vw.banner }}"><div style="font-size:9px;letter-spacing:.06em;font-weight:600;color:var(--color-neutral-800);border-bottom:1px solid var(--color-neutral-500);padding-bottom:5px;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px"><span>FILED: NEW YORK COUNTY CLERK</span><span>{{ vw.banner }}</span></div></sc-if>
+        <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--color-neutral-800);margin-bottom:6px">{{ vw.segLabel }}</div>
+        <div style="height:6px;width:92%;background:var(--color-neutral-300)"></div>
+        <div style="height:6px;width:86%;background:var(--color-neutral-300)"></div>
+        <div style="height:6px;width:95%;background:var(--color-neutral-300)"></div>
+        <div style="height:6px;width:60%;background:var(--color-neutral-300);margin-bottom:6px"></div>
+        <sc-for list="{{ vw.quotes }}" as="q" hint-placeholder-count="1">
+          <div style="{{ q.style }}">
+            <span style="{{ q.textStyle }}">{{ q.pre }}</span>
+            <sc-if value="{{ q.redact }}"><span style="display:inline-block;width:52px;height:12px;background:var(--color-text);vertical-align:middle;margin:0 2px"></span><span>{{ q.post }}</span></sc-if>
+          </div>
+        </sc-for>
+        <sc-if value="{{ vw.noQuotes }}"><div style="font-size:12px;color:var(--color-neutral-700);font-style:italic;padding:6px 0">No cited facts on this page.</div></sc-if>
+        <div style="height:6px;width:90%;background:var(--color-neutral-300);margin-top:6px"></div>
+        <div style="height:6px;width:94%;background:var(--color-neutral-300)"></div>
+        <div style="height:6px;width:82%;background:var(--color-neutral-300)"></div>
+        <div style="height:6px;width:88%;background:var(--color-neutral-300)"></div>
+        <div style="height:6px;width:45%;background:var(--color-neutral-300)"></div>
+        <div style="position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:10px;color:var(--color-neutral-700)">{{ vw.footer }}</div>
+      </div>
+    </div>
+    <sc-if value="{{ vw.scan }}"><div style="padding:8px 18px;font-size:12px;color:var(--color-neutral-700);border-top:1px solid var(--color-divider)">Scanned page, no text layer. Facts were read from the page image.</div></sc-if>
+  </aside>
+  </sc-if>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;layout&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;split&quot;,&quot;drawer&quot;],&quot;default&quot;:&quot;split&quot;,&quot;tsType&quot;:&quot;'split'|'drawer'&quot;},&quot;startView&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;firm&quot;,&quot;provider&quot;],&quot;default&quot;:&quot;firm&quot;,&quot;tsType&quot;:&quot;'firm'|'provider'&quot;}}">
+const PROV = {
+  montefiore: 'Montefiore Nyack Hospital',
+  haggerty: 'Advanced Rockland Chiropractic',
+  sportscare: 'SportsCare Physical Therapy',
+  newhorizon: 'New Horizon Surgical Center'
+};
+const DOCS = {
+  hipaa: { t: 'Firm HIPAA authorization', s: 'HIPAA auth', f: '01-intake__created__hipaa-authorization.pdf', n: 1, segs: [[1, 1, 'HIPAA authorization']] },
+  photoid: { t: 'Driver license photo', s: 'Driver license', f: '01-intake__created__photo-id.pdf', n: 1, scan: 1, segs: [[1, 1, 'Photo ID']] },
+  complaint: { t: 'Summons & complaint', s: 'Complaint', f: '02-pleadings__doc-01__summons-complaint.pdf', n: 8, scan: 1, nys: 1, segs: [[1, 2, 'Summons'], [3, 7, 'Verified complaint'], [8, 8, 'Verification']] },
+  bop: { t: 'Bill of particulars', s: 'Bill of particulars', f: '02-pleadings__doc-07__bill-of-particulars.pdf', n: 14, nys: 7, segs: [[1, 14, 'Bill of particulars']] },
+  bopad: { t: 'Bill of particulars: affirmative defenses', s: 'Aff. defenses', f: '02-pleadings__doc-41__bop-affirmative-defenses.pdf', n: 3, nys: 41, segs: [[1, 3, 'Affirmative defenses']] },
+  disc: { t: 'Plaintiff’s discovery responses', s: 'Discovery responses', f: '03-discovery__doc-08__response-discovery-demands.pdf', n: 10, nys: 8, segs: [[1, 10, 'Discovery responses']] },
+  defresp: { t: 'Defendants’ response & incident report', s: 'Incident report', f: '03-discovery__doc-40__defendants-response-demand.pdf', n: 11, nys: 40, segs: [[1, 4, 'Response to demand'], [5, 11, 'Metro-North incident report']] },
+  records: { t: 'Medical bundle 1: Haggerty / imaging', s: 'Med. bundle 1', f: '04-medical-records__doc-19__records-bundle-part1-haggerty-imaging.pdf', n: 250, scan: 1, nys: 19, idx: '150940/2024', segs: [[1, 1, 'Exhibit cover'], [2, 9, 'Notice of cross-motion'], [10, 96, 'Imaging reports'], [97, 238, 'Chiropractic notes', 'haggerty'], [239, 244, 'OCA-960 authorization'], [245, 250, 'Montefiore facesheet', 'montefiore']] },
+  bills: { t: 'Medical bundle 2: PT / ortho / ER / operative', s: 'Med. bundle 2', f: '05-medical-bills__doc-20__records-and-bills-part2-pt-ortho-er-operative.pdf', n: 262, scan: 1, nys: 20, idx: '150940/2024', segs: [[1, 9, 'Emergency department note', 'montefiore'], [10, 130, 'Physical therapy notes', 'sportscare'], [131, 160, 'Operative records', 'newhorizon'], [161, 170, 'Surgical brochure'], [171, 180, 'Exhibit covers'], [181, 200, 'Draft complaint (tracked changes)'], [201, 262, 'Orthopedic notes']] },
+  letter: { t: 'Letter to Judge Chin', s: 'Judge letter', f: '06-correspondence__doc-12__letter-to-judge.pdf', n: 1, scan: 1, nys: 12, segs: [[1, 1, 'Letter']] },
+  katzman: { t: 'Defense radiology review: Dr. Katzman', s: 'Katzman', f: '08-experts__doc-47__radiology-review-katzman.pdf', n: 10, nys: 47, segs: [[1, 1, 'Cover letter'], [2, 10, 'Radiology review']] },
+  tsao: { t: 'Defense neurology exchange: Dr. Tsao', s: 'Tsao', f: '08-experts__doc-55__expert-exchange-neuro-tsao.pdf', n: 47, nys: 55, segs: [[1, 4, 'Expert exchange'], [5, 47, 'Curriculum vitae']] },
+  hostin: { t: 'Defense orthopedic IME: Dr. Hostin', s: 'Hostin', f: '08-experts__doc-56__ime-orthopedic-hostin.pdf', n: 15, nys: 56, segs: [[1, 15, 'Orthopedic IME']] }
+};
+const EVENTS = [
+  { id: 'e1', d: '2023-04-23', sub: 'About 8:30 a.m.', label: 'Accident with a Metro-North vehicle', kind: 'Accident', vis: 'firm', flags: ['conflict'], ev: ['bop', 3, 'on Cedar Street at its intersection with Garden Street'] },
+  { id: 'e2', d: '2023-04-24', label: 'Emergency department visit', who: 'montefiore', kind: 'Treatment', vis: 'montefiore', ev: ['bills', 2, 'Medications given: ketorolac, diazepam'] },
+  { id: 'e3', d: '2023-05-07', label: 'Firm HIPAA authorization signed', kind: 'Intake', vis: 'firm', ev: ['hipaa', 1, 'may redisclose to a treating provider, an insurer, or another person working on the claim'] },
+  { id: 'e4', d: '2023-06-14', label: 'OCA-960 records request to Montefiore Nyack', kind: 'Authorization', vis: 'firm', flags: ['sensitive'], ev: ['records', 241, 'Entire chart, 04/24/2023 to present'] },
+  { id: 'e5', d: '2023-07-26', label: 'Left shoulder surgery', who: 'newhorizon', kind: 'Surgery', vis: 'newhorizon', ev: ['bills', 131, 'Date of surgery: 07/26/2023 · Left shoulder'] },
+  { id: 'e6', d: '2024-10', label: 'Summons and complaint filed', sub: 'Index 160000/2024, renewing dismissed 150940/2024', kind: 'Filing', vis: 'firm', ev: ['complaint', 1, 'Index No. 160000/2024'] },
+  { id: 'e7', d: '2025-01-02', label: 'Bill of particulars and discovery responses served', kind: 'Filing', vis: 'firm', flags: ['incomplete'], inc: 'Blank DOB', ev: ['bop', 2, 'Date of birth: ______'] },
+  { id: 'e8', d: '2025-04-16', label: 'Letter to Judge Chin asking for a conference date', kind: 'Correspondence', vis: 'firm', ev: ['letter', 1, 'respectfully request a conference date'] },
+  { id: 'e9', d: '2025-09-30', label: 'Defendants’ response, incident report, Pullano subpoena', kind: 'Demand', vis: 'firm', flags: ['conflict'], ev: ['defresp', 6, 'Refused medical attention / no injury'] },
+  { id: 'e10', d: '2025-12-08', label: 'Defense radiology review, Dr. Katzman', kind: 'Defense exam', vis: 'firm', flags: ['conflict'], ev: ['katzman', 9, 'no evidence of recent traumatic injury to the knees or right shoulder'] },
+  { id: 'e11', d: '2026-03-04', label: 'Defense neurology exchange, Dr. Tsao', kind: 'Defense exam', vis: 'firm', ev: ['tsao', 1, 'Expert witness disclosure'] },
+  { id: 'e12', d: '2026-03-31', label: 'Defense orthopedic exam, Dr. Hostin', kind: 'Defense exam', vis: 'firm', ev: ['hostin', 1, 'Independent orthopedic examination'] },
+  { id: 'e13', d: null, label: 'Chiropractic treatment notes', who: 'haggerty', kind: 'Treatment', vis: 'haggerty', flags: ['incomplete'], inc: 'Dates not extracted', ev: ['records', 97, 'Chiropractic progress note'] },
+  { id: 'e14', d: null, label: 'Physical therapy notes', who: 'sportscare', kind: 'Treatment', vis: 'sportscare', flags: ['incomplete'], inc: 'Dates not extracted', ev: ['bills', 10, 'Physical therapy daily note'] },
+  { id: 'e15', d: null, label: 'Imaging reports', sub: 'Hudson Valley Radiology / Mid Rockland Imaging', kind: 'Imaging', vis: 'firm', flags: ['sensitive', 'incomplete'], inc: 'Dates not extracted', ev: ['records', 10, 'MRI report'] }
+];
+const PFACTS = {
+  montefiore: [['Date of injury', '04/23/2023', ['bills', 1, 'Date of injury: 04/23/2023']], ['Date of service', '04/24/2023', ['bills', 1, 'Arrival 04/24/2023 · MRN 06925757']], ['Medications', 'Ketorolac, diazepam', ['bills', 2, 'Medications given: ketorolac, diazepam']]],
+  haggerty: [['Date of injury', '04/23/2023', ['records', 97, 'Date of injury: 04/23/2023']], ['Treatment', 'Chiropractic care', ['records', 97, 'Chiropractic progress note']]],
+  sportscare: [['Date of injury', '04/23/2023', ['bills', 10, 'Date of injury: 04/23/2023']], ['Treatment', 'Physical therapy', ['bills', 10, 'Physical therapy daily note']]],
+  newhorizon: [['Date of injury', '04/23/2023', ['bills', 131, 'Date of injury: 04/23/2023']], ['Procedure', 'Left shoulder surgery, 07/26/2023', ['bills', 131, 'Date of surgery: 07/26/2023 · Left shoulder']]]
+};
+const PFIRST = { montefiore: ['bills', 1], haggerty: ['records', 97], sportscare: ['bills', 10], newhorizon: ['bills', 131] };
+const GROUPS = [
+  { id: 'g2', title: 'Client address', st: 'conflict', note: 'Same name, three addresses. Don’t merge records on name alone.', rows: [
+    ['7 Valley Drive, Nanuet, NY', [['hipaa', 1, '7 Valley Drive, Nanuet, NY'], ['photoid', 1, '7 Valley Drive, Nanuet, NY'], ['bills', 1, 'Address: 7 Valley Drive, Nanuet, NY']]],
+    ['20510 Cypress Plaza Pkwy, Apt. 3211, Cypress, TX', [['bop', 2, 'Current address: 20510 Cypress Plaza Parkway, Apt. 3211, Cypress, Texas']]],
+    ['96 Oxford Avenue, Buffalo, NY 14209', [['records', 241, '96 Oxford Avenue, Buffalo, NY 14209']]]] },
+  { id: 'g3', title: 'Accident location', st: 'conflict', rows: [
+    ['Cedar Street at Garden Street', [['bop', 3, 'on Cedar Street at its intersection with Garden Street']]],
+    ['I-95, Exit 16', [['defresp', 6, 'Location: I-95 Exit 16']]]] },
+  { id: 'g4', title: 'Injury at the scene', st: 'conflict', rows: [
+    ['Refused medical attention, no injury', [['defresp', 6, 'Refused medical attention / no injury']]],
+    ['Seen in the emergency department next day', [['bills', 1, 'Arrival 04/24/2023 · MRN 06925757']]]] },
+  { id: 'g1', title: 'Date of birth', st: 'incomplete', rows: [
+    ['12/21/1995', [['hipaa', 1, 'Justin Sapini · DOB 12/21/1995'], ['photoid', 1, 'DOB 12/21/1995'], ['records', 241, 'DOB 12/21/1995']]],
+    [null, [['bop', 2, 'Date of birth: ______']]]] },
+  { id: 'g6', title: 'Right knee', st: 'conflict', rows: [
+    ['Meniscus tears', [['bop', 5, 'tears of the medial and lateral menisci, right knee']]],
+    ['No recent traumatic injury', [['katzman', 9, 'no evidence of recent traumatic injury to the knees or right shoulder']]]] },
+  { id: 'g8', title: 'Right shoulder', st: 'conflict', rows: [
+    ['Labral and rotator-cuff tears', [['bop', 5, 'labral tear and rotator cuff tear, right shoulder']]],
+    ['No recent traumatic injury', [['katzman', 9, 'no evidence of recent traumatic injury to the knees or right shoulder']]]] },
+  { id: 'g7', title: 'Brain', st: 'conflict', rows: [
+    ['Concussion, abnormal DTI, increased brain volume', [['bop', 5, 'concussion; abnormal DTI; increased brain volume']]],
+    ['No traumatic brain injury, normal DTI', [['katzman', 9, 'no traumatic brain injury; DTI normal']]]] },
+  { id: 'g9', title: 'Left shoulder surgery', st: 'consistent', rows: [
+    ['Surgery on 7/26/2023', [['bills', 131, 'Date of surgery: 07/26/2023 · Left shoulder'], ['bop', 6, 'left shoulder surgery performed 7/26/2023']]]] },
+  { id: 'g5', title: 'Index number', st: 'conflict', note: 'Two related cases. The earlier one was dismissed and renewed under CPLR 205.', rows: [
+    ['160000/2024 (current)', [['complaint', 1, 'Index No. 160000/2024']]],
+    ['150940/2024 (dismissed)', [['complaint', 2, 'previously commenced under Index No. 150940/2024 … CPLR 205'], ['records', 1, 'INDEX NO. 150940/2024']]]] },
+  { id: 'g10', title: 'Katzman report date', st: 'conflict', rows: [
+    ['February 11, 2025', [['katzman', 1, 'report dated February 11, 2025']]],
+    ['December 8, 2025', [['katzman', 2, 'December 8, 2025']]]] },
+  { id: 'g11', title: 'Social Security number', st: 'sensitive', note: 'Redaction failed. Never fill in the covered digits.', rows: [
+    ['123-84-▇▇-314 (partly visible)', [['records', 241, 'SSN 123-84-', { post: '314' }]]]] },
+  { id: 'g12', title: 'No-fault claim number', st: 'incomplete', rows: [
+    [null, [['disc', 5, 'Progressive, claim number ______']]]] },
+  { id: 'g13', title: 'Damages', st: 'single', rows: [
+    ['Not to exceed $10,000,000', [['disc', 4, 'not to exceed $10,000,000']]]] }
+];
+const EXTRA = [
+  ['Benefits', 'New York Medicaid recipient', ['disc', 6, 'Plaintiff is a New York Medicaid recipient']],
+  ['Employment', 'Commission-only financial advisor, Northwestern Mutual', ['bop', 9, 'commission-only financial advisor, Northwestern Mutual']],
+  ['Defendant employee numbers', 'Ferrara 115290 · Correia 114749', ['defresp', 8, 'Employee no. 115290 · Supervisor 114749']],
+  ['License number', 'Blacked out', ['photoid', 1, 'License no. ', { post: '' }]],
+  ['Draft legal theory', 'Struck paragraph on Pennsylvania plate', ['bills', 181, 'Metro-North vehicle bore a Pennsylvania plate', { strike: 1 }]],
+  ['Boilerplate', '“Her” used for a male plaintiff', ['bopad', 2, 'her seat belt … her failure to mitigate']]
+];
+const TODOS = [
+  { id: 't1', sev: 'sensitive', title: 'Keep the OCA-960 form out of every provider view', detail: 'The patient initialed HIV, mental-health and alcohol/drug categories. The attorney named in item 9(b) is blank.', ev: ['records', 241, 'Initialed: alcohol/drug treatment · mental health · HIV-related information'] },
+  { id: 't2', sev: 'sensitive', title: 'Partial Social Security number is visible', detail: '123-84 and 314 show on either side of the black bar.', ev: ['records', 241, 'SSN 123-84-', { post: '314' }] },
+  { id: 't3', sev: 'sensitive', title: 'Two HIPAA authorizations disagree on sharing', detail: 'The firm form allows sharing with treaters. The OCA-960 limits discussion to an attorney who is not named.', ev: ['hipaa', 1, 'may redisclose to a treating provider, an insurer, or another person working on the claim'] },
+  { id: 't4', sev: 'sensitive', title: 'Split medical bundle 2 before sharing', detail: 'Pages 181–200 are a draft complaint with tracked changes. That is attorney work product.', ev: ['bills', 181, 'Metro-North vehicle bore a Pennsylvania plate', { strike: 1 }] },
+  { id: 't5', sev: 'sensitive', title: 'Defense review used a 2018 chest x-ray', detail: 'September 10, 2018 is outside the authorization window, which starts one year before the accident.', ev: ['katzman', 6, 'Chest x-ray, 09/10/2018'] },
+  { id: 't6', sev: 'sensitive', title: 'Three imagers are missing from the HIPAA provider list', detail: 'The bill of particulars names Hudson Valley / Mid Rockland Imaging, Interventional PM&R and Lenox Hill Radiology. Abramov is on the authorization but not in the bill.', ev: ['bop', 7, 'Hudson Valley Radiology / Mid Rockland Imaging; Lenox Hill Radiology'] },
+  { id: 't7', sev: 'conflict', title: 'Three different addresses for the client', detail: 'Nanuet, Cypress (Texas) and Buffalo.', ev: ['records', 241, '96 Oxford Avenue, Buffalo, NY 14209'], tab: 'evidence' },
+  { id: 't8', sev: 'conflict', title: 'Accident location doesn’t match', detail: 'Cedar Street at Garden Street, or I-95 Exit 16.', ev: ['defresp', 6, 'Location: I-95 Exit 16'] },
+  { id: 't9', sev: 'conflict', title: 'Incident report says “no injury”', detail: 'The client went to the emergency department the next day.', ev: ['defresp', 6, 'Refused medical attention / no injury'] },
+  { id: 't10', sev: 'conflict', title: 'Defense radiology contradicts the injury list', detail: 'Knees, right shoulder and brain.', ev: ['katzman', 9, 'no evidence of recent traumatic injury to the knees or right shoulder'] },
+  { id: 't11', sev: 'conflict', title: 'Katzman report carries two dates', detail: 'Cover letter: February 11, 2025. Report: December 8, 2025.', ev: ['katzman', 1, 'report dated February 11, 2025'] },
+  { id: 't12', sev: 'conflict', title: 'Affirmative defenses call the plaintiff “her”', detail: 'Template boilerplate. Not for providers.', ev: ['bopad', 2, 'her seat belt … her failure to mitigate'] },
+  { id: 't13', sev: 'incomplete', title: 'Date of birth is blank in the bill of particulars', detail: 'Other documents say 12/21/1995.', ev: ['bop', 2, 'Date of birth: ______'] },
+  { id: 't14', sev: 'incomplete', title: 'No-fault claim number is blank', detail: 'Progressive is named; the number is missing.', ev: ['disc', 5, 'Progressive, claim number ______'] },
+  { id: 't15', sev: 'incomplete', title: 'Documents mentioned but not in the file', detail: '50-h transcript, police accident report, 22 photos, retainer, defendants’ insurance coverage, lien ledger.', ev: ['disc', 3, '22 photographs … 50-h transcript'] }
+];
+const MON = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+const tabBase = { display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 14px 10px', background: 'transparent', border: 'none', borderBottom: '2px solid transparent', cursor: 'pointer', fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: '20px', letterSpacing: '.04em', borderBottomWidth: '3px', textTransform: 'uppercase', color: 'var(--color-neutral-700)', marginBottom: '-1px' };
+
+class Component extends DCLogic {
+  state = { mode: null, pid: 'montefiore', tab: 'timeline', layout: null, pdfOpen: false, evMode: 'grouped', done: {}, sel: null, viewer: { doc: 'bop', page: 3, quote: 'on Cedar Street at its intersection with Garden Street' }, msg: 'Validated 15 files' };
+
+  src(ev) { return DOCS[ev[0]].s + ' · p. ' + ev[1]; }
+  open(ev, sel, e) { if (e && e.preventDefault) e.preventDefault(); this.setState({ viewer: { doc: ev[0], page: ev[1], quote: ev[2] }, pdfOpen: true, sel }); }
+  segOf(doc, page) { return DOCS[doc].segs.find(s => page >= s[0] && page <= s[1]) || DOCS[doc].segs[0]; }
+
+  renderVals() {
+    const mode = this.state.mode ?? this.props.startView ?? 'firm';
+    const layout = this.state.layout ?? this.props.layout ?? 'split';
+    const isFirm = mode === 'firm', pid = this.state.pid;
+    const split = layout === 'split';
+    let tab = this.state.tab;
+    if (!isFirm && (tab === 'evidence' || tab === 'todo')) tab = 'timeline';
+    if (isFirm && tab === 'records') tab = 'timeline';
+    const sel = this.state.sel;
+
+    // timeline
+    let evs = isFirm ? EVENTS : EVENTS.filter(e => e.vis === pid);
+    if (!isFirm) evs = [{ id: 'doi', d: '2023-04-23', label: 'Date of injury', kind: 'Injury', vis: pid, ev: PFACTS[pid][0][2] }, ...evs];
+    evs = [...evs].sort((a, b) => (a.d === null) - (b.d === null) || (b.d || '').localeCompare(a.d || ''));
+    const years = [];
+    evs.forEach(e => {
+      const y = e.d ? e.d.slice(0, 4) : 'No date found yet';
+      let g = years.find(x => x.label === y); if (!g) { g = { label: y === 'No date found yet' ? 'Undated' : y, key: y, events: [] }; years.push(g); }
+      const parts = e.d ? e.d.split('-') : [];
+      const flags = isFirm ? (e.flags || []) : [];
+      g.events.push({
+        mon: parts[1] ? MON[+parts[1] - 1] : '', day: parts[2] ? String(+parts[2]) : (parts[1] ? '—' : '?'),
+        kind: e.kind + (isFirm && e.who ? ' · ' + PROV[e.who] : ''), label: e.label, sub: e.sub || null, src: isFirm ? this.src(e.ev) : (() => { const s = this.segOf(e.ev[0], e.ev[1]); return s[2] + ' · p. ' + (e.ev[1] - s[0] + 1); })(),
+        isConflict: flags.includes('conflict'), isSensitive: flags.includes('sensitive'), isIncomplete: flags.includes('incomplete'), incompleteLabel: e.inc || 'Incomplete',
+        showVis: isFirm, firmOnly: e.vis === 'firm', shared: e.vis !== 'firm', visLabel: e.vis === 'firm' ? 'Firm only' : 'Shared with ' + PROV[e.vis],
+        open: () => this.open(e.ev, e.id),
+        nodeStyle: { position: 'absolute', left: '3px', top: '20px', width: '11px', height: '11px', transform: flags.includes('conflict') ? 'rotate(45deg)' : 'none', background: e.vis === 'firm' ? 'var(--color-accent-900)' : 'var(--color-bg)', border: '1.5px solid ' + (e.vis === 'firm' ? 'var(--color-accent-900)' : 'var(--color-accent)'), boxShadow: sel === e.id ? '0 0 0 4px var(--color-accent-300)' : 'none' },
+        rowStyle: { display: 'grid', gridTemplateColumns: '52px 18px minmax(0,1fr) auto', gap: '14px', padding: '14px 10px', borderBottom: '1px solid var(--color-divider)', cursor: 'pointer', alignItems: 'start', background: sel === e.id ? 'var(--color-accent-200)' : 'transparent', boxShadow: sel === e.id ? 'inset 3px 0 0 var(--color-accent)' : 'none' }
+      });
+    });
+
+    years.forEach(y => { y.count = y.events.length + (y.events.length === 1 ? ' event' : ' events'); });
+    // evidence
+    const groups = GROUPS.map(g => ({
+      title: g.title, note: g.note || null,
+      isConflict: g.st === 'conflict', isIncomplete: g.st === 'incomplete', isSensitive: g.st === 'sensitive', isConsistent: g.st === 'consistent', isSingle: g.st === 'single',
+      cardStyle: { display: 'flex', flexDirection: 'column', gap: '10px', padding: '16px 18px', background: sel === g.id ? 'var(--color-accent-100)' : 'transparent' },
+      rows: g.rows.map((r, i) => ({
+        letter: g.rows.length > 1 ? 'ABC'[i] : '·', v: r[0] ?? 'Left blank',
+        letterStyle: { width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: '13px', background: g.st === 'conflict' ? 'var(--color-accent-900)' : 'transparent', color: g.st === 'conflict' ? 'var(--color-bg)' : 'var(--color-accent-700)', border: '1px solid ' + (g.st === 'conflict' ? 'var(--color-accent-900)' : 'var(--color-accent-400)') },
+        valStyle: { fontSize: '16px', fontWeight: 500, lineHeight: 1.3, color: r[0] == null ? 'var(--color-neutral-700)' : 'var(--color-text)', fontStyle: r[0] == null ? 'italic' : 'normal' },
+        srcs: r[1].map(ev => ({ label: this.src(ev), open: (e) => this.open(ev, g.id, e) }))
+      }))
+    }));
+    const facts = [];
+    GROUPS.forEach(g => g.rows.forEach(r => r[1].forEach(ev => facts.push({ fact: g.title, v: r[0] ?? 'Left blank', src: this.src(ev), vis: 'Firm only', open: () => this.open(ev, g.id) }))));
+    EXTRA.forEach(x => facts.push({ fact: x[0], v: x[1], src: this.src(x[2]), vis: 'Firm only', open: () => this.open(x[2], null) }));
+    Object.keys(PFACTS).forEach(p => PFACTS[p].forEach(x => facts.push({ fact: x[0], v: x[1], src: this.src(x[2]), vis: PROV[p], open: () => this.open(x[2], null) })));
+
+    // to-do
+    const done = this.state.done;
+    const mk = sev => TODOS.filter(t => t.sev === sev).map(t => {
+      const d = !!done[t.id];
+      return {
+        title: t.title, detail: t.detail, src: this.src(t.ev), done: d,
+        open: () => this.open(t.ev, t.id),
+        toggle: () => this.setState(s => ({ done: { ...s.done, [t.id]: !s.done[t.id] } })),
+        boxStyle: { width: '20px', height: '20px', marginTop: '1px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid ' + (d ? 'var(--color-accent)' : 'var(--color-neutral-600)'), background: d ? 'var(--color-accent)' : 'transparent', color: 'var(--color-bg)' },
+        textStyle: { display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0, opacity: d ? 0.5 : 1, textDecoration: d ? 'line-through' : 'none' }
+      };
+    });
+    const openCount = sev => TODOS.filter(t => t.sev === sev && !done[t.id]).length;
+    const totalOpen = TODOS.filter(t => !done[t.id]).length;
+    const statCell = (n, label, first) => ({ n, label, style: { display: 'flex', flexDirection: 'column', gap: '8px', padding: '18px 20px', borderLeft: first ? 'none' : '1px solid var(--color-divider)', background: first ? 'var(--color-accent-900)' : 'var(--color-bg)', color: first ? 'var(--color-bg)' : 'var(--color-text)' } });
+
+    // viewer
+    let v = this.state.viewer;
+    if (!isFirm) {
+      const s = this.segOf(v.doc, v.page);
+      if (s[3] !== pid) { const f = PFIRST[pid]; v = { doc: f[0], page: f[1], quote: null }; }
+    }
+    const doc = DOCS[v.doc], seg = this.segOf(v.doc, v.page);
+    const lo = isFirm ? 1 : seg[0], hi = isFirm ? doc.n : seg[1];
+    const go = p => this.setState({ viewer: { doc: v.doc, page: Math.max(lo, Math.min(hi, p)), quote: null } });
+    const pool = [];
+    const push = (ev, vis) => pool.push({ ev, vis });
+    EVENTS.forEach(e => push(e.ev, e.vis));
+    GROUPS.forEach(g => g.rows.forEach(r => r[1].forEach(ev => push(ev, 'firm'))));
+    EXTRA.forEach(x => push(x[2], 'firm'));
+    TODOS.forEach(t => push(t.ev, 'firm'));
+    Object.keys(PFACTS).forEach(p => PFACTS[p].forEach(x => push(x[2], p)));
+    const seen = {};
+    const quotes = pool.filter(x => x.ev[0] === v.doc && x.ev[1] === v.page && (isFirm || x.vis === pid)).filter(x => !seen[x.ev[2]] && (seen[x.ev[2]] = 1)).map(x => {
+      const o = x.ev[3] || {}, act = x.ev[2] === v.quote;
+      return {
+        pre: x.ev[2], redact: 'post' in o, post: o.post || '',
+        textStyle: { textDecoration: o.strike ? 'line-through' : 'none' },
+        style: { fontSize: '12.5px', lineHeight: 1.45, fontFamily: 'var(--font-body)', padding: '3px 5px', background: act ? 'var(--color-accent-300)' : 'var(--color-accent-100)', outline: act ? '1px solid var(--color-accent-700)' : 'none' }
+      };
+    });
+    const segsOut = doc.segs.map(s => {
+      const on = s === seg;
+      return {
+        label: s[2], range: s[0] === s[1] ? 'p. ' + s[0] : 'pp. ' + s[0] + '–' + s[1], go: () => go(s[0]),
+        style: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '1px', padding: '5px 9px', cursor: 'pointer', flexShrink: 0, border: '1px solid ' + (on ? 'var(--color-accent)' : 'var(--color-divider)'), background: on ? 'var(--color-accent)' : 'transparent', color: on ? 'var(--color-bg)' : 'var(--color-text)' }
+      };
+    });
+    const vw = {
+      title: isFirm ? doc.t : seg[2], sub: isFirm ? doc.f : PROV[pid] + ' · Justin Sapini',
+      showSegs: isFirm && doc.segs.length > 1, segs: segsOut, segLabel: seg[2],
+      pageLabel: isFirm ? 'Page ' + v.page + ' of ' + doc.n : 'Page ' + (v.page - lo + 1) + ' of ' + (hi - lo + 1),
+      prev: () => go(v.page - 1), next: () => go(v.page + 1),
+      banner: isFirm && doc.nys ? 'NYSCEF DOC. NO. ' + doc.nys + ' · INDEX NO. ' + (doc.idx || '160000/2024') : null,
+      quotes, noQuotes: quotes.length === 0, footer: isFirm ? String(v.page) : String(v.page - lo + 1), scan: !!doc.scan
+    };
+    const viewerVisible = split || this.state.pdfOpen;
+
+    const tabDefs = isFirm
+      ? [['timeline', 'Timeline', null], ['evidence', 'Evidence', null], ['todo', 'To-do', totalOpen || null]]
+      : [['timeline', 'Timeline', null], ['records', 'My records', null]];
+
+    return {
+      isFirm, isProvider: !isFirm, pid, providerName: PROV[pid],
+      providerOpts: Object.keys(PROV).map(id => ({ id, name: PROV[id] })),
+      setFirm: () => this.setState({ mode: 'firm' }), setProvider: () => this.setState({ mode: 'provider', sel: null }),
+      onPid: e => this.setState({ pid: e.target.value, sel: null }),
+      isSplit: split, isDrawer: !split,
+      setSplit: () => this.setState({ layout: 'split' }), setDrawer: () => this.setState({ layout: 'drawer', pdfOpen: false }),
+      plate: [
+        { k: 'Client', v: 'Justin Sapini' }, { k: 'Index', v: '160000/2024' }, { k: 'Accident', v: 'Apr 23, 2023' },
+        { k: 'Files', v: '15 PDFs · 662 pp.' }, { k: 'Open to-dos', v: String(totalOpen), live: totalOpen > 0 }
+      ],
+      tabs: tabDefs.map(([id, label, count], i) => ({ label, count, num: '0' + (i + 1), select: () => this.setState({ tab: id }), style: { ...tabBase, color: tab === id ? 'var(--color-text)' : tabBase.color, borderBottomColor: tab === id ? 'var(--color-accent)' : 'transparent' } })),
+      statusMsg: this.state.msg,
+      doExtract: () => this.setState({ msg: '15 PDFs extracted · just now' }),
+      doSync: () => this.setState({ msg: 'Clio: 0 communications for this matter' }),
+      doValidate: () => this.setState({ msg: 'Validated just now · ' + totalOpen + ' open' }),
+      showTimeline: tab === 'timeline', showEvidence: tab === 'evidence', showTodo: tab === 'todo', showRecords: tab === 'records',
+      years, groups, facts,
+      evGrouped: this.state.evMode === 'grouped', evAll: this.state.evMode === 'all',
+      setGrouped: () => this.setState({ evMode: 'grouped' }), setAll: () => this.setState({ evMode: 'all' }),
+      todoSummary: totalOpen + ' of ' + TODOS.length + ' still open. Click a source to see the page; tick the box when it’s handled.',
+      todoStats: [statCell(openCount('sensitive'), 'Before sharing', true), statCell(openCount('conflict'), 'Facts that disagree'), statCell(openCount('incomplete'), 'Missing or blank')],
+      todoSections: [
+        { title: 'Before sharing anything', sub: 'Things a provider must never see, or that must be fixed first.', items: mk('sensitive') },
+        { title: 'Facts that disagree', sub: 'Documents say different things. Decide which is right; don’t smooth it over.', items: mk('conflict') },
+        { title: 'Missing or blank', sub: 'Fields left empty, or papers the file mentions but doesn’t contain.', items: mk('incomplete') }
+      ],
+      pfacts: (PFACTS[pid] || []).map(x => ({ k: x[0], v: x[1], src: 'p. ' + (x[2][1] - this.segOf(x[2][0], x[2][1])[0] + 1), open: () => this.open(x[2], null) })),
+      psegs: Object.values(DOCS).flatMap(d => d.segs.filter(s => s[3] === pid).map(s => ({ label: s[2], pages: (s[1] - s[0] + 1) + ' pages', open: () => this.setState({ viewer: { doc: Object.keys(DOCS).find(k => DOCS[k] === d), page: s[0], quote: null }, pdfOpen: true }) }))),
+      viewerVisible, vw, closePdf: () => this.setState({ pdfOpen: false, sel: null }),
+      mainStyle: split ? { flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(380px,40%)' } : { flex: 1, minHeight: 0, position: 'relative', display: 'flex' },
+      contentStyle: { overflow: 'auto', minHeight: 0, flex: 1, borderRight: split ? '1px solid var(--color-text)' : 'none' },
+      contentInner: { padding: '0 24px 48px', maxWidth: split ? 'none' : '1040px', margin: '0 auto', width: '100%' },
+      viewerStyle: split
+        ? { display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', background: 'var(--color-bg)' }
+        : { position: 'absolute', top: 0, right: 0, bottom: 0, width: 'min(560px, 92%)', display: 'flex', flexDirection: 'column', background: 'var(--color-bg)', boxShadow: 'var(--shadow-lg)', borderLeft: '1px solid var(--color-divider)', zIndex: 5 }
+    };
+  }
+}
+</script>
+</body>
+</html>
