@@ -173,6 +173,30 @@
   }
 }
 
+.mark {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid var(--tone, var(--border));
+  background: var(--wash, var(--muted));
+  color: var(--ink, var(--foreground));
+}
+.tone-ink { color: var(--ink, var(--muted-foreground)); }
+.tone-accident { --wash: #f6ebe7; --ink: #6d4036; --tone: #d7b2a6; }
+.tone-treatment { --wash: #e7f1ea; --ink: #2e4a38; --tone: #b7d0c0; }
+.tone-imaging { --wash: #e8f1f6; --ink: #2c4658; --tone: #b5cddd; }
+.tone-surgery { --wash: #f3e8ee; --ink: #5c3348; --tone: #d4b3c2; }
+.tone-bill { --wash: #f6f1e6; --ink: #5c4a2e; --tone: #d9c9a4; }
+.tone-pleading { --wash: #eeeaf4; --ink: #433858; --tone: #c4bad4; }
+.tone-discovery { --wash: #e7eef8; --ink: #2d4160; --tone: #b4c4dc; }
+.tone-expert { --wash: #e8f3f1; --ink: #244844; --tone: #b3d0cb; }
+.tone-insurance { --wash: #f7eee8; --ink: #5e4032; --tone: #d8c0b2; }
+.tone-client { --wash: #eef0e8; --ink: #3d482c; --tone: #c5cdb0; }
+.tone-court { --wash: #ececee; --ink: #3a3a40; --tone: #c2c2c8; }
+
 #drawer.is-open { pointer-events: auto; }
 #drawer.is-open .drawer-scrim { opacity: 1; pointer-events: auto; }
 #drawer.is-open #drawer-panel { transform: translateX(0); }

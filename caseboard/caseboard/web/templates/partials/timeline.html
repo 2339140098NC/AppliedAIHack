@@ -34,7 +34,7 @@
   {% for item in urgent %}
   <li class="flex items-baseline gap-3 px-3 py-2 text-sm">
     {% with tone=item.tone %}{% include "partials/mark.html" %}{% endwith %}
-    <span class="w-24 shrink-0 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{{ item.category }}</span>
+    <span class="tone-{{ item.tone }} tone-ink w-24 shrink-0 text-[11px] font-medium uppercase tracking-wide">{{ item.category }}</span>
     <span class="w-28 shrink-0 text-xs text-muted-foreground">{{ item.when }}</span>
     {% if item.href %}
     <a class="min-w-0 hover:underline" href="{{ item.href }}" hx-get="/partials/drawer{{ item.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ item.href }}">{{ item.line }}</a>
@@ -76,9 +76,14 @@
       <div class="absolute inset-y-0 w-px bg-border"></div>
       <div class="relative mt-1.5 size-2 rounded-full {% if event.conflict %}bg-destructive{% elif event.firm_only %}bg-muted-foreground{% else %}bg-primary{% endif %}"></div>
     </div>
-    <div class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ event.form }}</div>
+    <div class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-foreground">
+      {% if event.form in ["Phone", "Email", "Note", "Filing"] %}
+      {% with form=event.form %}{% include "partials/form_icon.html" %}{% endwith %}
+      {% endif %}
+      {{ event.form }}
+    </div>
     <div class="min-w-0">
-      <div class="flex items-center gap-2 text-xs text-muted-foreground">{% with tone=event.tone %}{% include "partials/mark.html" %}{% endwith %}{% if event.kind != event.form %}{{ event.kind }}{% endif %}{% if event.urgent %}<span class="rounded-md bg-destructive px-1.5 py-0.5 text-[11px] font-medium text-destructive-foreground">Important</span>{% endif %}</div>
+      <div class="flex items-center gap-2 text-xs">{% with tone=event.tone %}{% include "partials/mark.html" %}{% endwith %}{% if event.kind != event.form %}<span class="tone-{{ event.tone }} tone-ink font-medium uppercase tracking-wide">{{ event.kind }}</span>{% endif %}{% if event.urgent %}<span class="rounded-md bg-destructive px-1.5 py-0.5 text-[11px] font-medium text-destructive-foreground">Important</span>{% endif %}</div>
       <div class="text-sm font-medium">{{ event.label }}</div>
       {% if event.sub %}<div class="text-sm text-muted-foreground">{{ event.sub }}</div>{% endif %}
       {% if event.src %}
