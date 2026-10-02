@@ -31,6 +31,14 @@ class ValidationRunner:
             for row in self._store.list_type(DocType.communication)
         ]
         findings = run_checks(sources, facets, groups, events, communications)
+        resolved = {
+            row["code"]
+            for row in self._store.list_type(DocType.validation)
+            if row.get("resolved")
+        }
+        for item in findings:
+            if item.code in resolved:
+                item.resolved = True
         self._store.delete_type(DocType.validation)
         self._store.put_many(DocType.validation, [(item.id, item) for item in findings])
         return len(findings)

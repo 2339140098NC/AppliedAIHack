@@ -1,0 +1,60 @@
+<div class="pane-head">
+  <div style="margin-right:auto">
+    <div class="pane-title">Evidence</div>
+    <div class="pane-sub">Every fact links to the page it came from. Disagreements stay visible.</div>
+  </div>
+  <div class="seg">
+    <a class="seg-opt" href="{{ query.url(tab='evidence', ev='compared') }}"><input type="radio" {% if ev_compared %}checked{% endif %} tabindex="-1">Compared</a>
+    <a class="seg-opt" href="{{ query.url(tab='evidence', ev='all') }}"><input type="radio" {% if not ev_compared %}checked{% endif %} tabindex="-1">All facts</a>
+  </div>
+</div>
+{% if ev_compared %}
+<div class="cards">
+  {% for group in groups %}
+  <div class="blueprint fact-card {% if group.selected %}is-selected{% endif %}">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <div class="card-head">
+      <span class="card-title">{{ group.title }}</span>
+      {% if group.conflict %}<span class="tag conflict">≠ Conflict</span>
+      {% elif group.incomplete %}<span class="tag tag-outline dashed">Incomplete</span>
+      {% elif group.sensitive %}<span class="tag tag-neutral sensitive">Sensitive</span>
+      {% elif group.consistent %}<span class="tag tag-accent">✓ Consistent</span>
+      {% elif group.single %}<span class="tag tag-neutral">One source</span>
+      {% endif %}
+    </div>
+    {% for row in group.rows %}
+    <div class="value-row">
+      <span class="letter {% if row.conflict %}conflict{% endif %}">{{ row.letter }}</span>
+      <div>
+        <div class="value {% if row.blank %}blank{% endif %}">{{ row.value }}</div>
+        <div class="src-row">
+          {% for source in row.sources %}
+          <a class="src-link" href="{{ source.href }}" hx-get="/partials/viewer{{ source.href[1:] }}" hx-target="#viewer" hx-swap="innerHTML" hx-push-url="{{ source.href }}">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path></svg>
+            {{ source.label }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="empty">No compared facts yet.</p>
+  {% endfor %}
+</div>
+{% else %}
+<table class="table facts">
+  <thead><tr><th>Fact</th><th>What the page says</th><th>Source</th><th>Who can see it</th></tr></thead>
+  <tbody>
+    {% for fact in facts %}
+    <tr hx-get="/partials/viewer{{ fact.href[1:] }}" hx-target="#viewer" hx-swap="innerHTML" hx-push-url="{{ fact.href }}">
+      <td style="color:var(--color-neutral-700);font-size:13px">{{ fact.fact }}</td>
+      <td style="font-weight:500">{{ fact.value }}</td>
+      <td style="font-size:12px;color:var(--color-accent-700);white-space:nowrap">{{ fact.src }}</td>
+      <td style="font-size:12px;color:var(--color-neutral-700)">{{ fact.vis }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}

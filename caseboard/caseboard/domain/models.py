@@ -155,3 +155,4 @@ class Finding(BaseModel):
     message: str
     record_ids: list[str] = Field(default_factory=list)
     evidence: list[Evidence] = Field(default_factory=list)
+    resolved: bool = False

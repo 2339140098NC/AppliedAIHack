@@ -1,0 +1,43 @@
+<div class="todo-wrap">
+  <div>
+    <div class="pane-title">To-do</div>
+    <div class="pane-sub">{{ open_count }} of {{ finding_count }} still open. Click a source to see the page; tick the box when it’s handled.</div>
+  </div>
+  <div class="blueprint stats">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    {% for key, label, sub in sections %}
+    <div class="stat {% if loop.first %}first{% endif %}">
+      <span class="stat-num">{{ findings | selectattr('severity', 'equalto', key) | rejectattr('done') | list | length }}</span>
+      <span class="stat-label">{{ label }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% for key, label, sub in sections %}
+  <div>
+    <div class="section-head">
+      <span class="section-title">{{ label }}</span>
+      <span class="pane-sub">{{ sub }}</span>
+    </div>
+    {% for item in findings if item.severity == key %}
+    <div class="todo">
+      <button class="check {% if item.done %}is-done{% endif %}" type="button" aria-label="Mark resolved"
+              hx-post="/findings/{{ item.id }}/resolved?{{ query.url().split('?', 1)[1] }}" hx-target="#stage" hx-swap="innerHTML">
+        {% if item.done %}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg>
+        {% endif %}
+      </button>
+      <div class="todo-text {% if item.done %}is-done{% endif %}">
+        <span class="todo-title">{{ item.title }}</span>
+        <span class="todo-detail">{{ item.detail }}</span>
+      </div>
+      {% if item.href %}
+      <button class="btn btn-ghost" type="button" hx-get="/partials/viewer{{ item.href[1:] }}" hx-target="#viewer" hx-swap="innerHTML" hx-push-url="{{ item.href }}">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path></svg>
+        {{ item.src }}
+      </button>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>

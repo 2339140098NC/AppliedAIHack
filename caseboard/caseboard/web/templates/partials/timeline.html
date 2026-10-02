@@ -1,18 +1,51 @@
-{% if not events %}
-<p class="empty">No events for this audience yet.</p>
+{% if not years %}
+<p class="empty">Nothing on the timeline yet.</p>
 {% else %}
-<ol class="timeline">
-  {% for event in events %}
-  <li>
-    <time>{{ event.date or "Undated" }}{% if event.time %} {{ event.time }}{% endif %}</time>
+{% for year in years %}
+<div>
+  <div class="year-head">
+    <span class="year-label">{{ year.label }}</span>
+    <span class="year-count">{{ year.count }}</span>
+  </div>
+  {% for event in year.events %}
+  <div class="event {% if event.selected %}is-selected{% endif %}"
+       {% if event.href %}hx-get="/partials/viewer{{ event.href[1:] }}" hx-target="#viewer" hx-swap="innerHTML" hx-push-url="{{ event.href }}"{% endif %}>
     <div>
-      <p class="label">{{ event.label }}</p>
-      <p class="meta">{{ event.kind }} · {{ event.sensitivity_reason }}</p>
-      {% for cite in event.evidence %}
-      <p class="cite">{{ cite.document }} p.{{ cite.page }}{% if cite.quote %} — {{ cite.quote }}{% endif %}</p>
-      {% endfor %}
+      <div class="event-month">{{ event.month }}</div>
+      <div class="event-day">{{ event.day }}</div>
     </div>
-  </li>
+    <div class="spine">
+      <div class="spine-line"></div>
+      <div class="node {% if event.firm_only %}firm{% endif %} {% if event.conflict %}conflict{% endif %}"></div>
+    </div>
+    <div>
+      <div class="event-kind">{{ event.kind }}</div>
+      <div class="event-label">{{ event.label }}</div>
+      {% if event.sub %}<div class="event-sub">{{ event.sub }}</div>{% endif %}
+      {% if event.src %}
+      <div class="event-src">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path></svg>
+        {{ event.src }}
+      </div>
+      {% endif %}
+    </div>
+    <div class="flags">
+      {% if event.conflict %}<span class="tag conflict">≠ Conflict</span>{% endif %}
+      {% if event.sensitive %}<span class="tag tag-neutral sensitive">Sensitive</span>{% endif %}
+      {% if event.incomplete %}<span class="tag tag-outline dashed">{{ event.incomplete_label }}</span>{% endif %}
+      {% if event.show_vis %}
+      <span class="vis">
+        {% if event.firm_only %}
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        {% else %}
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        {% endif %}
+        {{ event.vis_label }}
+      </span>
+      {% endif %}
+    </div>
+  </div>
   {% endfor %}
-</ol>
+</div>
+{% endfor %}
 {% endif %}

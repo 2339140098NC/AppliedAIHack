@@ -1,0 +1,9 @@
+<div class="content">
+  <div class="content-inner">
+    {% if query.tab == "timeline" %}{% include "partials/timeline.html" %}{% endif %}
+    {% if query.tab == "evidence" %}{% include "partials/evidence.html" %}{% endif %}
+    {% if query.tab == "todo" %}{% include "partials/todo.html" %}{% endif %}
+    {% if query.tab == "records" %}{% include "partials/records.html" %}{% endif %}
+  </div>
+</div>
+<aside class="viewer" id="viewer">{% include "partials/viewer.html" %}</aside>

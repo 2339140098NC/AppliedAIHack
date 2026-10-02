@@ -27,3 +27,6 @@ include = ["caseboard*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.vercel]
+entrypoint = "caseboard.main:app"

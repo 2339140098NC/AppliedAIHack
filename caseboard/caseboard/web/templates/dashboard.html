@@ -3,56 +3,102 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sapini case board</title>
-  <link rel="stylesheet" href="/static/app.css">
+  <title>Sapini v. Ferrara &amp; Metro-North</title>
+  <link rel="stylesheet" href="/static/industry.css">
+  <link rel="stylesheet" href="/static/workspace.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap">
   <script src="/static/htmx.min.js"></script>
 </head>
 <body>
-  <header class="mast">
-    <p class="firm">Stolzenberg Cortelli · matter file</p>
-    <div class="title-row">
-      <h1>Sapini</h1>
-      <p class="versus">v. Ferrara and Metro-North<br>Index 160000/2024</p>
+  <div class="workspace">
+    <header class="masthead">
+      <div class="mast-row">
+        <div class="brand">
+          <div class="monogram">JS</div>
+          <div>
+            <div class="kicker">Matter · Personal injury</div>
+            <div class="matter-title">Sapini v. Ferrara &amp; Metro-North</div>
+          </div>
+        </div>
+        <div class="control">
+          <span class="control-label">View as</span>
+          <div class="seg">
+            <a class="seg-opt" href="{{ query.url(view='firm', tab='timeline', document='', page='', quote='', sel='') }}">
+              <input type="radio" {% if firm %}checked{% endif %} tabindex="-1">Firm
+            </a>
+            <a class="seg-opt" href="{{ query.url(view='provider', tab='timeline', document='', page='', quote='', sel='') }}">
+              <input type="radio" {% if not firm %}checked{% endif %} tabindex="-1">Provider
+            </a>
+          </div>
+          {% if not firm %}
+          <select class="input provider-select" aria-label="Provider" onchange="location.href=this.value">
+            {% for key, name in providers %}
+            <option value="{{ query.url(view='provider', provider=key, tab='timeline', document='', page='', quote='', sel='') }}" {% if query.provider == key %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+          </select>
+          {% endif %}
+        </div>
+      </div>
+      <div id="plate">{% include "partials/plate.html" %}</div>
+    </header>
+
+    {% if not firm %}
+    <div class="provider-banner">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+      <span><strong>{{ provider_name }}</strong> sees exactly this screen: their own records for Justin Sapini, nothing else.</span>
     </div>
-    <div class="toolbar">
-      <nav class="audience" aria-label="Audience">
-        <a href="/?audience=firm" {% if audience == 'firm' %}aria-current="page"{% endif %}>Firm</a>
-        <a href="/?audience=provider" {% if audience == 'provider' %}aria-current="page"{% endif %}>Provider</a>
-      </nav>
-      <form hx-post="/actions/extract" hx-target="#status" hx-swap="innerHTML">
-        <button type="submit" {% if not gemini_ready %}disabled title="Set GEMINI_API_KEY"{% endif %}>Extract PDFs</button>
-      </form>
-      {% if clio_connected %}
-      <form hx-post="/actions/sync" hx-target="#status" hx-swap="innerHTML">
-        <button type="submit">Sync Clio</button>
-      </form>
-      {% else %}
-      <a class="button" href="/clio/connect">Connect Clio</a>
+    {% endif %}
+
+    <div class="tabbar">
+      <div class="tabs">
+        {% for tab in tabs %}
+        <a class="tab {% if tab.active %}is-active{% endif %}" href="{{ tab.href }}">
+          <span class="num">{{ tab.num }}</span>
+          <span>{{ tab.label }}</span>
+          {% if tab.count %}<span class="tag tag-accent" id="todo-count">{{ tab.count }}</span>{% endif %}
+        </a>
+        {% endfor %}
+      </div>
+      {% if firm %}
+      <div class="tab-actions">
+        <div id="status" hx-get="/partials/status?{{ query.url().split('?', 1)[1] }}" hx-trigger="load, every 3s" hx-swap="innerHTML"></div>
+        <form hx-post="/actions/extract" hx-target="#status" hx-swap="innerHTML">
+          <button class="btn btn-secondary" type="submit" {% if not gemini_ready %}disabled{% endif %}>Extract PDFs</button>
+        </form>
+        {% if clio_connected %}
+        <form hx-post="/actions/sync" hx-target="#status" hx-swap="innerHTML">
+          <button class="btn btn-secondary" type="submit">Sync Clio</button>
+        </form>
+        {% else %}
+        <a class="btn btn-secondary" href="/clio/connect">Connect Clio</a>
+        {% endif %}
+        <form hx-post="/actions/validate" hx-target="#status" hx-swap="innerHTML">
+          <button class="btn btn-primary blueprint" type="submit">Run validations<i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i></button>
+        </form>
+      </div>
       {% endif %}
-      <form hx-post="/actions/validate" hx-target="#findings" hx-swap="innerHTML">
-        <button type="submit">Run validations</button>
-      </form>
     </div>
-    <p class="hint">
-      {% if not gemini_ready %}Gemini key missing. {% endif %}
-      {% if not clio_ready %}Clio app credentials missing. {% endif %}
-      Provider view hides firm-only facts. Design docs can restyle this page later.
-    </p>
-  </header>
-  <div id="status" hx-get="/partials/status" hx-trigger="load, every 3s"></div>
-  <main class="docket">
-    <section>
-      <h2>Timeline</h2>
-      <div id="timeline" hx-get="/partials/timeline?audience={{ audience }}" hx-trigger="load, every 4s"></div>
-    </section>
-    <section>
-      <h2>Comparisons</h2>
-      <div id="groups" hx-get="/partials/groups?audience={{ audience }}" hx-trigger="load, every 4s"></div>
-    </section>
-    <section>
-      <h2>Validations</h2>
-      <div id="findings" hx-get="/partials/findings" hx-trigger="load, every 4s"></div>
-    </section>
-  </main>
+
+    <div id="stage" class="stage">{% include "partials/stage.html" %}</div>
+  </div>
+  <script>
+    document.body.addEventListener("htmx:afterSwap", (event) => {
+      if (event.detail.target.id !== "status") return;
+      const running = !!event.detail.target.querySelector(".running");
+      const was = document.body.dataset.running === "1";
+      const refresh = !!event.detail.target.querySelector("[data-refresh]");
+      document.body.dataset.running = running ? "1" : "0";
+      if ((was && !running) || refresh) {
+        const search = window.location.search || "";
+        htmx.ajax("GET", "/partials/stage" + search, {target: "#stage", swap: "innerHTML"});
+      }
+    });
+    document.body.addEventListener("click", (event) => {
+      const row = event.target.closest(".event, .fact-card, .facts tr, .record-row");
+      if (!row) return;
+      document.querySelectorAll(".is-selected").forEach((node) => node.classList.remove("is-selected"));
+      row.classList.add("is-selected");
+    });
+  </script>
 </body>
 </html>

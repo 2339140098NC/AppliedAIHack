@@ -1,1 +1,4 @@
 Sapini documents/
+__pycache__/
+*.pyc
+.vercel/

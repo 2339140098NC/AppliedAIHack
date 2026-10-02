@@ -1,0 +1,39 @@
+<div class="stack">
+  <div>
+    <div class="pane-title">What your records show</div>
+    {% if records.facts %}
+    <div class="blueprint record-list" style="margin-top:12px">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      {% for fact in records.facts %}
+      <a class="record-row" href="{{ fact.href }}" {% if fact.href %}hx-get="/partials/viewer{{ fact.href[1:] }}" hx-target="#viewer" hx-swap="innerHTML" hx-push-url="{{ fact.href }}"{% endif %}>
+        <span style="font-size:13px;color:var(--color-neutral-700)">{{ fact.label }}</span>
+        <span class="value">{{ fact.value }}</span>
+        <span style="font-size:12px;color:var(--color-accent-700)">{{ fact.src }}</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty">No cited facts from this provider yet.</p>
+    {% endif %}
+  </div>
+  <div>
+    <div class="pane-title">Your documents</div>
+    {% if records.documents %}
+    <div style="margin-top:12px">
+      {% for doc in records.documents %}
+      <div class="blueprint doc-row">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--color-accent)"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path></svg>
+        <div style="margin-right:auto">
+          <div style="font-size:15px;font-weight:500">{{ doc.label }}</div>
+          <div class="pane-sub">{{ doc.pages }}</div>
+        </div>
+        <button class="btn btn-secondary" type="button" hx-get="/partials/viewer{{ doc.href[1:] }}" hx-target="#viewer" hx-swap="innerHTML" hx-push-url="{{ doc.href }}">Open</button>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty">No documents from this provider yet.</p>
+    {% endif %}
+  </div>
+</div>
