@@ -6,7 +6,7 @@
   <title>Proximate</title>
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/industry.css">
-  <link rel="stylesheet" href="/static/workspace.css?v=glance-marks">
+  <link rel="stylesheet" href="/static/workspace.css?v=crit-cards">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap">
   <script src="/static/htmx.min.js"></script>
 </head>
@@ -131,6 +131,8 @@
       const url = closer.getAttribute("href");
       if (url) history.pushState({}, "", url);
     });
+    const marked = location.hash ? document.getElementById(location.hash.slice(1)) : null;
+    if (marked) marked.scrollIntoView({ block: "center" });
     document.body.addEventListener("click", (event) => {
       const row = event.target.closest(".event, .fact-card, .facts tr, .record-row");
       if (!row) return;

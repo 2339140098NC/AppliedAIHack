@@ -342,6 +342,7 @@ class Workspace:
                 "done": finding.resolved,
                 "src": sources[0]["label"] if sources else "",
                 "href": sources[0]["href"] if sources else "",
+                "todo_href": self.query.url(tab="todo", sel=finding.id, document="", page="", quote=""),
                 "sources": sources,
             })
         return rows

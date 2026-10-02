@@ -13,18 +13,17 @@
   </li>
   {% endfor %}
 </ul>
-{% elif critical %}
-<ul class="glance">
+{% endif %}
+{% if critical %}
+<div class="crit-grid">
   {% for item in critical %}
-  <li>
-    {% if item.href %}
-    <a href="{{ item.href }}" hx-get="/partials/drawer{{ item.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ item.href }}">{{ item.glance }}</a>
-    {% else %}
-    <span>{{ item.glance }}</span>
-    {% endif %}
-  </li>
+  <a class="crit-card blueprint" href="{{ item.todo_href }}#todo-{{ item.id }}">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <strong>{{ item.glance }}</strong>
+    <span class="crit-go">Open in to-do</span>
+  </a>
   {% endfor %}
-</ul>
+</div>
 {% endif %}
 {% endif %}
 {% if not years %}

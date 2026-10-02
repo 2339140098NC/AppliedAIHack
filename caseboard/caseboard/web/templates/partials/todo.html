@@ -19,7 +19,7 @@
       <span class="pane-sub">{{ sub }}</span>
     </div>
     {% for item in findings if item.severity == key %}
-    <div class="todo">
+    <div class="todo {% if query.selected == item.id %}is-selected{% endif %}" id="todo-{{ item.id }}">
       <button class="check {% if item.done %}is-done{% endif %}" type="button" aria-label="Mark resolved"
               hx-post="/findings/{{ item.id }}/resolved?{{ query.url().split('?', 1)[1] }}" hx-target="#stage" hx-swap="innerHTML">
         {% if item.done %}
