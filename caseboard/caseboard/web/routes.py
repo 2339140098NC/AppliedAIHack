@@ -140,6 +140,11 @@ def glance(request: Request) -> HTMLResponse:
     return _start(request, "glance", request.app.state.actions.glance)
 
 
+@router.post("/actions/bills", response_class=HTMLResponse)
+def bills(request: Request) -> HTMLResponse:
+    return _start(request, "bills", request.app.state.actions.bills)
+
+
 @router.post("/actions/validate", response_class=HTMLResponse)
 def validate(request: Request) -> HTMLResponse:
     _open_session(request)

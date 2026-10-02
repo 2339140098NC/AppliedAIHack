@@ -175,6 +175,19 @@ class ItemGlance(BaseModel):
     urgent: bool = False
 
 
+class Charge(BaseModel):
+    """One dollar amount printed on a bill. The figure is copied, not computed."""
+
+    id: str
+    provider: str
+    description: str
+    amount: str
+    service_date: str = ""
+    document: str
+    page: int = 1
+    quote: str = ""
+
+
 class ClientPortrait(BaseModel):
     """The client's headshot. The rest of the photo ID stays out of this record."""
 

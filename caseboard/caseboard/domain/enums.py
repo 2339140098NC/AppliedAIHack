@@ -60,6 +60,7 @@ class DocType(str, Enum):
     portrait = "portrait"
     share = "share"
     glance = "glance"
+    charge = "charge"
 
 
 class Severity(str, Enum):

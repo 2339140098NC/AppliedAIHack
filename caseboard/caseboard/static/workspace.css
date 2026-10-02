@@ -267,6 +267,22 @@ button, input, select { font: inherit; color: inherit; }
 .glance li { display: flex; align-items: center; gap: 8px; padding: 7px 4px; border-bottom: 1px solid var(--color-divider); }
 .glance a, .glance span { color: inherit; text-decoration: none; font-size: 15px; font-weight: 500; }
 .glance a:hover { color: var(--color-accent-800); }
+.case-block { margin-top: 28px; }
+.case-block:first-of-type { margin-top: 8px; }
+.case-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.case-head h2 {
+  margin: 0; font-family: var(--font-heading); font-weight: 600; font-size: 13px;
+  letter-spacing: .16em; text-transform: uppercase;
+}
+.bill-amount { font-family: var(--font-heading); font-weight: 600; font-size: 28px; line-height: 1; }
+.bill-line { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; padding-top: 8px; border-top: 1px solid var(--color-divider); font-size: 14px; }
+.bill-line strong { margin-left: auto; font-variant-numeric: tabular-nums; }
+.people-role { margin: 14px 0 6px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--color-neutral-700); }
+.people-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px 18px; }
+.person { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--color-divider); }
+.person a, .person strong { font-weight: 600; text-decoration: none; color: inherit; }
+.person a:hover { color: var(--color-accent-700); }
+.person-meta { font-size: 12px; color: var(--color-neutral-700); }
 .crit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; margin: 12px 0 20px; }
 .crit-card {
   display: flex; flex-direction: column; gap: 10px; justify-content: space-between;

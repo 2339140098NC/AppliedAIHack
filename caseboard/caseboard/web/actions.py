@@ -5,6 +5,7 @@ from caseboard.clio.client import ClioClient
 from caseboard.clio.sync import ClioSync
 from caseboard.config import Settings
 from caseboard.errors import CaseboardError
+from caseboard.extract.bills import read_bills
 from caseboard.extract.corpus import CorpusExtractor
 from caseboard.extract.gemini import GeminiExtractor
 from caseboard.glance.classify import classify_timeline
@@ -72,6 +73,20 @@ class Actions:
             self._job.finish(f"Read {count} timeline items.")
         except Exception as exc:
             self._job.finish("Reading the timeline failed", error=str(exc))
+
+    def bills(self) -> None:
+        """Read printed amounts off the medical bills. The fact extract is left alone."""
+        try:
+            count = read_bills(
+                self._store,
+                self._clio,
+                self._settings.gemini_api_key,
+                self._settings.gemini_model,
+                self._job.update,
+            )
+            self._job.finish(f"Read {count} bill amounts.")
+        except Exception as exc:
+            self._job.finish("Reading the bills failed", error=str(exc))
 
     def validate(self) -> int:
         if self._job.snapshot()["running"]:

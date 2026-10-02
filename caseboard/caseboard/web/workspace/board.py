@@ -5,6 +5,7 @@ from pathlib import Path
 
 from caseboard.domain.enums import DocType, GroupStatus, Sensitivity
 from caseboard.domain.models import (
+    Charge,
     Communication,
     ComparisonGroup,
     Facet,
@@ -20,6 +21,7 @@ from caseboard.glance.text import glance_key
 from caseboard.share.packet import load_share, share_status
 from caseboard.store.documents import DocumentStore
 from caseboard.validate.critical import CRITICAL_GLANCE
+from caseboard.web.workspace.casefile import build_casefile
 from caseboard.web.workspace.comms import comm_meta, comm_sub
 from caseboard.web.workspace.extract_view import build_extract_detail
 from caseboard.web.workspace.posture import critical_rank, posture_sentence
@@ -52,6 +54,7 @@ class Workspace:
             for item in (Communication.model_validate(row) for row in store.list_type(DocType.communication))
         }
         self.has_portrait = bool(store.list_type(DocType.portrait))
+        self.charges = [Charge.model_validate(row) for row in store.list_type(DocType.charge)]
         self._glances = {
             item.id: item
             for item in (ItemGlance.model_validate(row) for row in store.list_type(DocType.glance))
@@ -86,6 +89,7 @@ class Workspace:
             "years": self._years(query),
             "groups": self._groups(query),
             "facts": self._facts(query),
+            "casefile": self._casefile(query),
             "findings": findings,
             "open_count": len(open_items),
             "finding_count": len(findings),
@@ -140,7 +144,7 @@ class Workspace:
 
     def _tabs(self, open_count: int) -> list[dict]:
         if self.query.firm:
-            specs = [("timeline", "Timeline", None), ("evidence", "Evidence", None), ("todo", "To-do", open_count or None)]
+            specs = [("timeline", "Timeline", None), ("evidence", "Case", None), ("todo", "To-do", open_count or None)]
         else:
             specs = [("timeline", "Timeline", None), ("records", "My records", None)]
         tabs = []
@@ -241,6 +245,18 @@ class Workspace:
             })
         rows.sort(key=lambda item: item["date"], reverse=True)
         return rows
+
+    def _casefile(self, query: WorkspaceQuery) -> dict:
+        if not query.firm:
+            return {"expenses": [], "people": [], "disagreements": []}
+        return build_casefile(
+            self.facets,
+            self.groups,
+            self.segments,
+            self.charges,
+            query,
+            lambda document, page: self._source_label(document, page, query),
+        )
 
     def _groups(self, query: WorkspaceQuery) -> list[dict]:
         cards = []
