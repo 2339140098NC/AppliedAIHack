@@ -243,22 +243,11 @@ button, input, select { font: inherit; color: inherit; }
 }
 .page-sheet img { display: block; width: 100%; height: auto; }
 .record-sheet { overflow: visible; }
-.case-status { padding: 20px 4px 0; display: flex; flex-direction: column; gap: 6px; }
-.posture { font-size: 15px; line-height: 1.45; margin: 0; max-width: 70ch; }
-.critical-list { margin: 22px 0 10px; }
-.critical-list .todo { display: block; }
-.critical, .critical-list .todo-text { min-width: 0; }
-.critical {
-  display: block; padding: 12px 0;
-  border-bottom: 1px solid var(--color-divider);
-}
-.critical h3, .critical-list .todo-title {
-  margin: 0; font-family: var(--font-heading); font-weight: 600; font-size: 18px; line-height: 1.2;
-}
-.critical p, .critical-list .todo-detail {
-  margin: 4px 0 0; font-size: 14px; line-height: 1.4; color: var(--color-neutral-800);
-}
-.critical .src-row, .critical-list .src-row { margin-top: 6px; }
+.posture { margin: 18px 4px 0; font-size: 15px; line-height: 1.35; }
+.glance { list-style: none; margin: 8px 0 16px; padding: 0; }
+.glance li { padding: 6px 4px; border-bottom: 1px solid var(--color-divider); }
+.glance a { color: inherit; text-decoration: none; font-size: 15px; font-weight: 500; }
+.glance a:hover { color: var(--color-accent-700); }
 .extract-detail { flex: 1; min-height: 0; overflow: auto; padding: 8px 16px 28px; }
 .extract-fact { padding: 12px 0; border-bottom: 1px solid var(--color-divider); display: flex; flex-direction: column; gap: 4px; }
 .record-meta { padding: 14px 18px 0; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }

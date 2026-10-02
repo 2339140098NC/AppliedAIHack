@@ -17,6 +17,7 @@ from caseboard.extract.compare import merge_same
 from caseboard.extract.stamp import extract_stamp
 from caseboard.share.packet import load_share, share_status
 from caseboard.store.documents import DocumentStore
+from caseboard.validate.critical import CRITICAL_GLANCE
 from caseboard.web.workspace.comms import comm_meta, comm_sub
 from caseboard.web.workspace.extract_view import build_extract_detail
 from caseboard.web.workspace.posture import critical_rank, posture_sentence
@@ -296,6 +297,7 @@ class Workspace:
                 "code": finding.code,
                 "severity": finding.severity.value,
                 "title": title,
+                "glance": CRITICAL_GLANCE.get(finding.code, title),
                 "detail": detail or finding.code,
                 "done": finding.resolved,
                 "src": sources[0]["label"] if sources else "",

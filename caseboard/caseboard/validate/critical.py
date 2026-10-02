@@ -18,6 +18,25 @@ from caseboard.validate.stories import (
     ssn,
 )
 
+CRITICAL_GLANCE = {
+    "critical_address": "Addresses disagree",
+    "critical_location": "Location disagrees",
+    "critical_scene": "Scene report says no injury",
+    "critical_defense": "Defense exam contradicts treatment",
+    "critical_index": "Two index numbers",
+    "critical_report_dates": "Expert report has two dates",
+    "critical_dob": "Date of birth is blank",
+    "critical_nofault": "No-fault number is blank",
+    "critical_ssn": "Social Security number is visible",
+    "critical_hipaa_share": "HIPAA forms disagree",
+    "critical_hipaa_special": "Special-category initials",
+    "critical_draft": "Draft pleading in a medical file",
+    "critical_chest": "2018 chest x-ray",
+    "critical_imagers": "Imagers missing from HIPAA",
+    "critical_pronoun": "Plaintiff called her",
+    "critical_missing": "Documents named but missing",
+}
+
 CRITICAL_PHRASES = {
     "critical_address": "addresses disagree",
     "critical_location": "the accident location disagrees",
