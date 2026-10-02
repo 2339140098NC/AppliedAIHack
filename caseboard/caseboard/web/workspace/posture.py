@@ -13,7 +13,7 @@ def posture_sentence(
     accident: str,
     open_codes: list[str],
 ) -> str:
-    """Settled facts, then the open critical stories in demo order."""
+    """Settled facts. The critical list under this line carries the open stories."""
     client = name or "Justin Sapini"
     current = index or "160000/2024"
     when = accident or "April 23, 2023"
@@ -21,10 +21,7 @@ def posture_sentence(
     if prior:
         sentence += f" Earlier index {prior} is also in the file."
     sentence += f" Accident {when}."
-    phrases = [CRITICAL_PHRASES[code] for code in open_codes if code in CRITICAL_PHRASES]
-    if phrases:
-        sentence += " Open: " + _and(phrases) + "."
-    else:
+    if not any(code in CRITICAL_PHRASES for code in open_codes):
         sentence += " No critical conflicts are open."
     return sentence
 
@@ -35,10 +32,3 @@ def critical_rank(code: str) -> int:
     except ValueError:
         return len(CRITICAL_ORDER)
 
-
-def _and(items: list[str]) -> str:
-    if len(items) == 1:
-        return items[0]
-    if len(items) == 2:
-        return f"{items[0]} and {items[1]}"
-    return ", ".join(items[:-1]) + ", and " + items[-1]

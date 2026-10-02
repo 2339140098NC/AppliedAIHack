@@ -7,22 +7,23 @@
 <div class="critical-list">
   <div class="section-head">
     <span class="section-title">Critical</span>
-    <span class="pane-sub">The disagreements and gaps that change what you can share.</span>
+    <span class="pane-sub">{{ critical|length }} open. The disagreements and gaps that change what you can share.</span>
   </div>
   {% for item in critical %}
-  <div class="todo">
-    <div class="todo-text">
-      <span class="todo-title">{{ item.title }}</span>
-      <span class="todo-detail">{{ item.detail }}</span>
-      {% if item.sources %}
-      <div class="src-row">
-        {% for source in item.sources %}
-        <a class="src-link" href="{{ source.href }}" hx-get="/partials/drawer{{ source.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ source.href }}">{{ source.label }}</a>
-        {% endfor %}
-      </div>
-      {% endif %}
+  <article class="critical">
+    <div>
+      <h3>{{ item.title }}</h3>
+      <p>{{ item.detail }}</p>
     </div>
-  </div>
+    {% if item.sources %}
+    <div class="src-row">
+      {% for source in item.sources[:2] %}
+      <a class="src-link" href="{{ source.href }}" hx-get="/partials/drawer{{ source.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ source.href }}">{{ source.label }}</a>
+      {% endfor %}
+      {% if item.sources|length > 2 %}<span class="src-more">+{{ item.sources|length - 2 }}</span>{% endif %}
+    </div>
+    {% endif %}
+  </article>
   {% endfor %}
 </div>
 {% endif %}
