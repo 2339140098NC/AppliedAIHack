@@ -25,7 +25,9 @@ class MatterPdfs:
             on_progress(f"Saving PDF {index}/{len(chosen)} {filename}")
             dest = self._directory / filename
             self._client.download_pdf(document_id, dest)
-            saved.append((filename, SourceFile(filename=filename, page_count=page_count(dest))))
+            record = SourceFile(filename=filename, page_count=page_count(dest))
+            self._store.put(DocType.source, filename, record)
+            saved.append((filename, record))
         kept = {filename for filename, _record in saved}
         for path in self._directory.glob("*.pdf"):
             if path.name not in kept:

@@ -22,6 +22,7 @@ class ClioSync:
         self._docs_dir = docs_dir
 
     def run(self, on_progress) -> tuple[int, int]:
+        on_progress("Reading Clio")
         matter_id, communications, notes, messages = self._client.sync_matter()
         self._store.delete_type(DocType.communication)
         self._store.delete_type(DocType.timeline_event, origin="clio")
