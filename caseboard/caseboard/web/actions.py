@@ -1,6 +1,10 @@
-"""Buttons: extract the corpus, sync Clio, and rerun validations."""
+"""Buttons: extract Clio PDFs, sync communications, and rerun validations."""
+
+import tempfile
+from pathlib import Path
 
 from caseboard.clio.client import ClioClient
+from caseboard.clio.documents import stored_pdfs
 from caseboard.clio.sync import ClioSync
 from caseboard.config import Settings
 from caseboard.errors import CaseboardError
@@ -26,6 +30,9 @@ class Actions:
 
     def extract(self) -> None:
         try:
+            chosen = stored_pdfs(self._clio.list_documents(self._clio.matter_id()))
+            if not chosen:
+                raise CaseboardError("Clio has no PDFs for this matter.")
             extractor = GeminiExtractor(
                 self._settings.gemini_api_key,
                 self._settings.gemini_model,
@@ -36,10 +43,9 @@ class Actions:
                 self._settings.docs_dir,
                 self._settings.compress_dir,
             )
-            files = corpus.pdfs()
-            if not files:
-                raise CaseboardError("No PDFs stored yet. Sync Clio first.")
-            problems = corpus.run(self._job.update)
+            corpus.begin()
+            problems = self._extract_each(corpus, chosen)
+            corpus.finish()
             count = ValidationRunner(self._store).run()
             if problems:
                 self._job.finish(
@@ -47,20 +53,30 @@ class Actions:
                     error="; ".join(problems),
                 )
                 return
-            self._job.finish(f"Extracted {len(files)} PDFs. {count} findings.")
+            self._job.finish(f"Extracted {len(chosen)} PDFs from Clio. {count} findings.")
         except Exception as exc:
             self._job.finish("Extract failed", error=str(exc))
 
+    def _extract_each(self, corpus: CorpusExtractor, chosen: list[tuple[str, str]]) -> list[str]:
+        problems: list[str] = []
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for index, (document_id, filename) in enumerate(chosen, start=1):
+                self._job.update(f"Extracting {index}/{len(chosen)} {filename}")
+                dest = root / filename
+                try:
+                    self._clio.download_pdf(document_id, dest)
+                    corpus.ingest(dest, document_id)
+                except Exception as exc:
+                    problems.append(f"{filename}: {exc}")
+        return problems
+
     def sync(self) -> None:
         try:
-            communications, pdfs = ClioSync(
-                self._store,
-                self._clio,
-                self._settings.docs_dir,
-            ).run(self._job.update)
+            communications, pdfs = ClioSync(self._store, self._clio).run(self._job.update)
             count = ValidationRunner(self._store).run()
             self._job.finish(
-                f"Stored {pdfs} PDFs and {communications} Clio records. {count} findings."
+                f"Listed {pdfs} Clio PDFs and stored {communications} records. {count} findings."
             )
         except Exception as exc:
             self._job.finish("Clio sync failed", error=str(exc))

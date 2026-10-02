@@ -1,40 +1,29 @@
-"""Save Clio matter PDFs on disk and record them in the document store."""
+"""Record Clio PDF names. The bytes are fetched when a page or extract needs them."""
 
 from pathlib import Path
 
 from caseboard.clio.client import ClioClient
 from caseboard.domain.enums import DocType
 from caseboard.domain.models import SourceFile
-from caseboard.extract.compress import page_count
 from caseboard.store.documents import DocumentStore
 
 
 class MatterPdfs:
-    """Download a matter's PDFs once. The board reads the copies, not Clio."""
+    """Remember which Clio PDFs belong to the matter. Bytes are fetched later."""
 
-    def __init__(self, client: ClioClient, store: DocumentStore, directory: Path) -> None:
+    def __init__(self, client: ClioClient, store: DocumentStore) -> None:
         self._client = client
         self._store = store
-        self._directory = directory
 
-    def pull(self, matter_id: str, on_progress) -> int:
+    def catalog(self, matter_id: str) -> int:
         chosen = stored_pdfs(self._client.list_documents(matter_id))
-        self._directory.mkdir(parents=True, exist_ok=True)
-        saved: list[tuple[str, SourceFile]] = []
-        for index, (document_id, filename) in enumerate(chosen, start=1):
-            on_progress(f"Saving PDF {index}/{len(chosen)} {filename}")
-            dest = self._directory / filename
-            self._client.download_pdf(document_id, dest)
-            record = SourceFile(filename=filename, page_count=page_count(dest))
-            self._store.put(DocType.source, filename, record)
-            saved.append((filename, record))
-        kept = {filename for filename, _record in saved}
-        for path in self._directory.glob("*.pdf"):
-            if path.name not in kept:
-                path.unlink()
+        rows = [
+            (filename, SourceFile(filename=filename, clio_document_id=document_id))
+            for document_id, filename in chosen
+        ]
         self._store.delete_type(DocType.source)
-        self._store.put_many(DocType.source, saved)
-        return len(saved)
+        self._store.put_many(DocType.source, rows)
+        return len(rows)
 
 
 def stored_pdfs(documents: list[dict]) -> list[tuple[str, str]]:

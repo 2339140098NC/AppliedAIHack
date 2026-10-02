@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import pymupdf as fitz
-
 from caseboard.clio.documents import MatterPdfs, stored_pdfs
 from caseboard.domain.enums import DocType
 from caseboard.store.documents import DocumentStore
@@ -22,9 +20,8 @@ def test_stored_pdfs_keep_uploaded_pdfs_only() -> None:
     ]
 
 
-def test_pull_writes_source_rows(tmp_path: Path) -> None:
+def test_catalog_records_ids_without_downloading(tmp_path: Path) -> None:
     store = DocumentStore(tmp_path / "case.sqlite")
-    docs = tmp_path / "pdfs"
 
     class FakeClient:
         def list_documents(self, matter_id: str) -> list[dict]:
@@ -41,17 +38,11 @@ def test_pull_writes_source_rows(tmp_path: Path) -> None:
             ]
 
         def download_pdf(self, document_id: str, dest: Path) -> None:
-            assert document_id == "9"
-            document = fitz.open()
-            document.new_page()
-            document.save(dest)
-            document.close()
+            raise AssertionError("catalog must not download")
 
-    messages: list[str] = []
-    saved = MatterPdfs(FakeClient(), store, docs).pull("1811189963", messages.append)
+    saved = MatterPdfs(FakeClient(), store).catalog("1811189963")
     assert saved == 1
-    assert (docs / "letter.pdf").is_file()
     rows = store.list_type(DocType.source)
     assert rows[0]["filename"] == "letter.pdf"
-    assert rows[0]["page_count"] == 1
-    assert messages == ["Saving PDF 1/1 letter.pdf"]
+    assert rows[0]["clio_document_id"] == "9"
+    assert rows[0]["page_count"] == 0

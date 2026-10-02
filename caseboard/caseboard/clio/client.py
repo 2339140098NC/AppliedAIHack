@@ -155,6 +155,9 @@ class ClioClient:
             )
         return str(matches[0]["id"])
 
+    def matter_id(self) -> str:
+        return self._matter_id()
+
     def _pages(self, path: str, params: dict) -> list[dict]:
         items: list[dict] = []
         url: str | None = path

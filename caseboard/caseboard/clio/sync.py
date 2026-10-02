@@ -1,7 +1,6 @@
-"""Write Clio communications and PDFs into the document store."""
+"""Write Clio communications and PDF names into the document store."""
 
 import uuid
-from pathlib import Path
 
 from caseboard.clio.client import ClioClient
 from caseboard.clio.documents import MatterPdfs
@@ -16,10 +15,9 @@ _TYPE_SOURCE = {
 
 
 class ClioSync:
-    def __init__(self, store: DocumentStore, client: ClioClient, docs_dir: Path) -> None:
+    def __init__(self, store: DocumentStore, client: ClioClient) -> None:
         self._store = store
         self._client = client
-        self._docs_dir = docs_dir
 
     def run(self, on_progress) -> tuple[int, int]:
         on_progress("Reading Clio")
@@ -67,7 +65,7 @@ class ClioSync:
             event_rows.append((event.id, event))
         self._store.put_many(DocType.communication, comm_rows)
         self._store.put_many(DocType.timeline_event, event_rows)
-        pdfs = MatterPdfs(self._client, self._store, self._docs_dir).pull(matter_id, on_progress)
+        pdfs = MatterPdfs(self._client, self._store).catalog(matter_id)
         return len(comm_rows), pdfs
 
 

@@ -48,27 +48,40 @@ class CorpusExtractor:
 
     def run(self, on_progress) -> list[str]:
         files = self.pdfs()
+        self.begin()
+        problems: list[str] = []
+        for index, path in enumerate(files, start=1):
+            on_progress(f"Extracting {index}/{len(files)} {path.name}")
+            try:
+                self.ingest(path, "")
+            except Exception as exc:
+                problems.append(f"{path.name}: {exc}")
+        self.finish()
+        return problems
+
+    def begin(self) -> None:
         self._store.delete_type(DocType.source)
         self._store.delete_type(DocType.segment)
         self._store.delete_type(DocType.facet)
         self._store.delete_type(DocType.group)
         self._store.delete_type(DocType.timeline_event, origin="pdf")
-        problems: list[str] = []
-        for index, path in enumerate(files, start=1):
-            on_progress(f"Extracting {index}/{len(files)} {path.name}")
-            try:
-                self._one(path)
-            except Exception as exc:
-                problems.append(f"{path.name}: {exc}")
-        self._rebuild_groups()
-        return problems
 
-    def _one(self, path: Path) -> None:
+    def ingest(self, path: Path, clio_document_id: str) -> None:
+        self._one(path, clio_document_id)
+
+    def finish(self) -> None:
+        self._rebuild_groups()
+
+    def _one(self, path: Path, clio_document_id: str) -> None:
         prepared = prepare_pdf(path, self._compress_dir)
         high = any(bit in path.name.lower() for bit in _HIGH_RES_BITS)
         extracted = self._extractor.extract_pdf(prepared, high_resolution=high)
         count = page_count(path)
-        source = SourceFile(filename=path.name, page_count=count)
+        source = SourceFile(
+            filename=path.name,
+            page_count=count,
+            clio_document_id=clio_document_id,
+        )
         self._store.put(DocType.source, path.name, source)
         self._store_extract(path.name, extracted)
 

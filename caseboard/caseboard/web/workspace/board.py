@@ -100,12 +100,19 @@ class Workspace:
     def _plate(self, open_count: int) -> list[dict]:
         pages = sum(item.page_count for item in self.sources)
         files = len(self.sources)
-        file_label = f"{files} PDF{'s' if files != 1 else ''} · {pages} pp."
+        if not files:
+            file_label = "No PDFs yet"
+        elif pages:
+            noun = "PDF" if files == 1 else "PDFs"
+            file_label = f"{files} {noun} · {pages} pp."
+        else:
+            noun = "PDF" if files == 1 else "PDFs"
+            file_label = f"{files} {noun}"
         cells = [
             {"k": "Client", "v": self._value("patient.name") or "Justin Sapini"},
             {"k": "Index", "v": self._value("case.index_number") or "160000/2024"},
             {"k": "Accident", "v": _pretty_date(self._value("accident.datetime") or self._value("accident.date")) or "Apr 23, 2023"},
-            {"k": "Files", "v": file_label if files else "No PDFs yet"},
+            {"k": "Files", "v": file_label},
         ]
         if self.query.firm:
             cells.append({"k": "Open to-dos", "v": str(open_count), "live": open_count > 0})
