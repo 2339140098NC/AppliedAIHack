@@ -1,4 +1,4 @@
-# Caseboard
+# Proximate
 
 Workspace for the Sapini matter. Firm users read a timeline, compare facts that disagree, and work validation findings. A provider view shows only that provider's own records.
 

@@ -14,7 +14,7 @@ from caseboard.web.routes import router
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     current = settings or Settings()
-    app = FastAPI(title="Caseboard")
+    app = FastAPI(title="Proximate")
     app.state.settings = current
     app.state.store = open_store(current)
     app.state.clio = ClioClient(current, open_tokens(current))
