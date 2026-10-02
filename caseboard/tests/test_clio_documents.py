@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from caseboard.clio.changes import PdfList
+from caseboard.clio.parties import event_when
 from caseboard.clio.documents import RemotePdf, diff_pdfs, select_extracts, stored_pdfs
 from caseboard.domain.enums import DocType
 from caseboard.domain.models import ModelEvidence, ModelEvent, ModelFacet, ModelSegment, PdfExtract, SourceFile
@@ -135,3 +136,12 @@ def test_sync_lists_pdfs_without_fetching_them(tmp_path: Path) -> None:
     assert row["filename"] == "letter.pdf"
     assert row["clio_document_id"] == "9"
     assert row["clio_version_id"] == ""
+
+
+def test_save_time_does_not_replace_the_communication_date() -> None:
+    day, clock = event_when("2023-05-07", None)
+    assert day == "2023-05-07"
+    assert clock == ""
+    day, clock = event_when("2023-05-07", "2023-05-07T14:14:00Z")
+    assert day == "2023-05-07"
+    assert clock == "2:14 PM"

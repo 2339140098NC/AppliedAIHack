@@ -28,6 +28,13 @@ def party_names(value: object) -> list[str]:
     return names
 
 
+def event_when(date: str | None, received_at: str | None = None) -> tuple[str | None, str]:
+    """The day the communication happened. A later save time is not that day."""
+    day, _ignored = split_stamp(date)
+    received_day, clock = split_stamp(received_at)
+    return day or received_day, clock
+
+
 def split_stamp(value: str | None) -> tuple[str | None, str]:
     """Calendar day and a 12-hour clock. A date with no time has an empty clock."""
     if not value:

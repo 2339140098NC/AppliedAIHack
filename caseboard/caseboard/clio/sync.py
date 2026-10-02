@@ -3,7 +3,7 @@
 import uuid
 
 from caseboard.clio.client import ClioClient
-from caseboard.clio.parties import other_party, party_name, party_names, split_stamp
+from caseboard.clio.parties import event_when, other_party, party_name, party_names, split_stamp
 from caseboard.domain.enums import CommSource, DocType, EventKind, Sensitivity
 from caseboard.domain.models import Communication, Evidence, TimelineEvent
 from caseboard.store.documents import DocumentStore
@@ -31,7 +31,7 @@ class ClioSync:
             author = party_name(item.get("user"))
             senders = party_names(item.get("senders"))
             receivers = party_names(item.get("receivers"))
-            day, clock = _when(item, "received_at", "created_at", "date")
+            day, clock = event_when(item.get("date"), item.get("received_at"))
             if source == CommSource.phone:
                 sender = other_party(author, item.get("senders"), item.get("receivers"))
                 recipients: list[str] = []
@@ -54,7 +54,7 @@ class ClioSync:
             comm_rows.append((record.id, record))
             event_rows.append((event.id, event))
         for item in notes:
-            day, clock = _when(item, "date", "created_at")
+            day, clock = event_when(item.get("date"))
             record, event = _pair(
                 matter_id=matter_id,
                 clio_id=str(item.get("id")),
@@ -89,17 +89,6 @@ class ClioSync:
         self._store.put_many(DocType.communication, comm_rows)
         self._store.put_many(DocType.timeline_event, event_rows)
         return len(comm_rows)
-
-
-def _when(item: dict, *keys: str) -> tuple[str | None, str]:
-    """Prefer a stamp that includes a clock, and keep the calendar day either way."""
-    day = None
-    clock = ""
-    for key in keys:
-        next_day, next_clock = split_stamp(item.get(key))
-        day = day or next_day
-        clock = clock or next_clock
-    return day, clock
 
 
 def _pair(
