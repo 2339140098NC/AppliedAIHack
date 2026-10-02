@@ -1,0 +1,8 @@
+<form class="include-form" hx-post="/share/toggle{{ query.url()[1:] }}" hx-target="#stage" hx-swap="innerHTML" onclick="event.stopPropagation()">
+  <input type="hidden" name="record_id" value="{{ item_id }}">
+  <button class="check {% if not held %}is-done{% endif %}" type="submit" aria-label="{{ 'Held back. Include it.' if held else 'Included. Hold it back.' }}" onclick="event.stopPropagation()">
+    {% if not held %}
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg>
+    {% endif %}
+  </button>
+</form>

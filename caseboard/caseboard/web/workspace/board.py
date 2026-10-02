@@ -15,6 +15,7 @@ from caseboard.domain.models import (
 )
 from caseboard.extract.compare import merge_same
 from caseboard.extract.stamp import extract_stamp
+from caseboard.share.packet import load_share, share_status
 from caseboard.store.documents import DocumentStore
 from caseboard.web.workspace.comms import comm_meta, comm_sub
 from caseboard.web.workspace.extract_view import build_extract_detail
@@ -35,6 +36,7 @@ class Workspace:
     """One render of the firm or provider workspace."""
 
     def __init__(self, store: DocumentStore, query: WorkspaceQuery) -> None:
+        self.store = store
         self.query = query
         self.sources = [SourceFile.model_validate(row) for row in store.list_type(DocType.source)]
         self.segments = [Segment.model_validate(row) for row in store.list_type(DocType.segment)]
@@ -82,6 +84,7 @@ class Workspace:
             "viewer": self._viewer(query),
             "extractions": self._extractions(query),
             "portrait": query.firm and self.has_portrait,
+            "share": self._share(query),
             "drawer_open": bool(query.drawer or query.document),
             "ev_compared": query.ev != "all",
         }
@@ -301,18 +304,40 @@ class Workspace:
             })
         return rows
 
-    def _records(self, query: WorkspaceQuery) -> dict:
-        facts = []
+    def share_ids(self, query: WorkspaceQuery) -> list[str]:
+        """Records this provider preview can include or hold back."""
+        if query.firm:
+            return []
+        events = [event.id for event in self._visible_events(query)]
+        facts = [facet.id for facet in self._provider_facets(query.provider)]
+        documents = [segment.id for segment in self._owned_segments(query.provider)]
+        return events + facts + documents
+
+    def _share(self, query: WorkspaceQuery) -> dict | None:
+        if query.firm:
+            return None
+        packet = load_share(self.store, query.provider)
+        return share_status(packet, self.share_ids(query))
+
+    def _provider_facets(self, provider: str) -> list[Facet]:
+        found = []
         for facet in self.facets:
             if facet.sensitivity != Sensitivity.provider_visible or not facet.value:
                 continue
             evidence = facet.evidence[0] if facet.evidence else None
             blob = _blob(facet.authored_by, facet.facet_key, evidence.document if evidence else "", facet.value)
-            if not _matches(query.provider, blob):
-                continue
+            if _matches(provider, blob):
+                found.append(facet)
+        return found
+
+    def _records(self, query: WorkspaceQuery) -> dict:
+        facts = []
+        for facet in self._provider_facets(query.provider):
+            evidence = facet.evidence[0] if facet.evidence else None
             page = evidence.page if evidence else 1
             document = evidence.document if evidence else ""
             facts.append({
+                "id": facet.id,
                 "label": _title(facet.facet_key),
                 "value": facet.value,
                 "src": self._source_label(document, page, query),
@@ -321,6 +346,7 @@ class Workspace:
         documents = []
         for segment in self._owned_segments(query.provider):
             documents.append({
+                "id": segment.id,
                 "label": segment.kind.value.replace("_", " ").title(),
                 "pages": _page_span(segment.page_start, segment.page_end),
                 "href": query.url(document=segment.source_file, page=segment.page_start, quote="", tab="records"),

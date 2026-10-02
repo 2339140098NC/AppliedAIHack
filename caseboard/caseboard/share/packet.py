@@ -46,12 +46,14 @@ def share_status(packet: ProviderShare, eligible: list[str]) -> dict:
     """Counts for the preview bar."""
     held = {item for item in packet.excluded if item in eligible}
     included = len(eligible) - len(held)
+    included_ids = {item for item in eligible if item not in held}
     return {
         "included": included,
         "held": len(held),
+        "held_ids": [item for item in packet.excluded if item in held],
         "sent": bool(packet.sent_at),
         "sent_label": _sent_label(packet.sent_at),
-        "changed": bool(packet.sent_at) and set(packet.sent_ids) != {item for item in eligible if item not in held},
+        "changed": bool(packet.sent_at) and set(packet.sent_ids) != included_ids,
     }
 
 

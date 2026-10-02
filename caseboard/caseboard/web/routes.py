@@ -13,6 +13,7 @@ from caseboard.clio.tokens import SESSION_COOKIE
 from caseboard.domain.enums import DocType
 from caseboard.domain.models import Finding
 from caseboard.errors import CaseboardError
+from caseboard.share.packet import send_packet, toggle_item
 from caseboard.web.pages import page_bytes, render_page
 from caseboard.web.workspace import Workspace, parse_query
 
@@ -81,6 +82,26 @@ def client_portrait(request: Request) -> Response:
         if encoded:
             return Response(content=base64.b64decode(encoded), media_type="image/png")
     raise HTTPException(status_code=404)
+
+
+@router.post("/share/toggle", response_class=HTMLResponse)
+def toggle_share(request: Request, record_id: str = Form()) -> HTMLResponse:
+    """Hold one preview row back, or include it again."""
+    query = parse_query(request)
+    store = request.app.state.store
+    if not query.firm and record_id in Workspace(store, query).share_ids(query):
+        toggle_item(store, query.provider, record_id)
+    return TEMPLATES.TemplateResponse(request, "partials/stage_response.html", _context(request))
+
+
+@router.post("/share/send", response_class=HTMLResponse)
+def send_share(request: Request) -> HTMLResponse:
+    """Record the checked rows as the packet this provider would receive."""
+    query = parse_query(request)
+    store = request.app.state.store
+    if not query.firm:
+        send_packet(store, query.provider, Workspace(store, query).share_ids(query))
+    return TEMPLATES.TemplateResponse(request, "partials/stage_response.html", _context(request))
 
 
 @router.post("/findings/{finding_id}/resolved", response_class=HTMLResponse)

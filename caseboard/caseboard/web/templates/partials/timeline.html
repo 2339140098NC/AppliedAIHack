@@ -37,7 +37,7 @@
     <span class="year-count">{{ year.count }}</span>
   </div>
   {% for event in year.events %}
-  <div class="event {% if event.selected %}is-selected{% endif %}"
+  <div class="event {% if event.selected %}is-selected{% endif %} {% if share and event.id in share.held_ids %}is-held{% endif %}"
        {% if event.href %}hx-get="/partials/drawer{{ event.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ event.href }}"{% endif %}>
     <div>
       <div class="event-month">{{ event.month }}</div>
@@ -59,6 +59,10 @@
       {% endif %}
     </div>
     <div class="flags">
+      {% if share %}
+      {% with item_id=event.id, held=event.id in share.held_ids %}{% include "partials/share_toggle.html" %}{% endwith %}
+      {% if event.id in share.held_ids %}<span class="tag tag-outline dashed">Held</span>{% endif %}
+      {% endif %}
       {% if event.conflict %}<span class="tag conflict">≠ Conflict</span>{% endif %}
       {% if event.sensitive %}<span class="tag tag-neutral sensitive">Sensitive</span>{% endif %}
       {% if event.incomplete %}<span class="tag tag-outline dashed">{{ event.incomplete_label }}</span>{% endif %}

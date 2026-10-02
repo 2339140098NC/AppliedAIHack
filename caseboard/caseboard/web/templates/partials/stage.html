@@ -1,3 +1,20 @@
+{% if share %}
+<div class="send-bar">
+  <div class="send-copy">
+    <div class="pane-title">Packet for {{ provider_name }}</div>
+    <div class="pane-sub">
+      {{ share.included }} included · {{ share.held }} held back
+      {% if share.sent_label %} · Sent {{ share.sent_label }}{% endif %}
+      {% if share.changed %} · Changed since that send{% endif %}
+    </div>
+  </div>
+  <form hx-post="/share/send{{ query.url()[1:] }}" hx-target="#stage" hx-swap="innerHTML">
+    <button class="btn btn-primary" type="submit" {% if share.included == 0 %}disabled{% endif %}>
+      {% if share.changed %}Send update{% elif share.sent %}Send again{% else %}Send{% endif %}
+    </button>
+  </form>
+</div>
+{% endif %}
 <div class="content">
   <div class="content-inner">
     {% if query.tab == "timeline" %}{% include "partials/timeline.html" %}{% endif %}
