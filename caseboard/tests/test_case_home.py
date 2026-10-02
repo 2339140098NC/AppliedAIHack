@@ -1,5 +1,6 @@
 """Case status, critical stories, and the per-PDF extract panel."""
 
+from datetime import date
 from pathlib import Path
 
 from caseboard.domain.enums import DocType, EventKind, SegmentKind, Sensitivity
@@ -8,6 +9,7 @@ from caseboard.store.documents import DocumentStore
 from caseboard.validate.checks import run_checks
 from caseboard.validate.runner import ValidationRunner
 from caseboard.web.workspace.board import Workspace
+from caseboard.web.workspace.status_bar import case_age
 from caseboard.web.workspace.query import WorkspaceQuery
 
 
@@ -51,6 +53,12 @@ def _query(**changes: str) -> WorkspaceQuery:
         drawer=str(data["drawer"]),
         panel=str(data["panel"]),
     )
+
+
+def test_case_age_counts_whole_months() -> None:
+    assert case_age("2023-04-23", date(2026, 10, 2)) == "3 yr 5 mo"
+    assert case_age("2026-09-02", date(2026, 10, 2)) == "1 mo"
+    assert case_age("", date(2026, 10, 2)) == ""
 
 
 def test_named_stories_replace_generic_conflicts() -> None:
@@ -108,6 +116,11 @@ def test_firm_home_leads_with_posture_and_hides_it_from_a_provider(tmp_path: Pat
     )
     firm = Workspace(store, _query()).context()
     assert firm["posture"] == "Surgery is waiting on a re-exam, and the papers still disagree on the address."
+    assert firm["status"]["summary"] == firm["posture"]
+    labels = [card["k"] for card in firm["status"]["cards"]]
+    assert labels == ["Age of case", "Providers", "Critical", "PDFs"]
+    assert firm["status"]["cards"][1]["v"] == "0"
+    assert Workspace(store, _query(tab="todo")).context()["status"] is None
     ssn = next(item for item in firm["critical"] if item["code"] == "critical_ssn")
     assert "tab=todo" in ssn["todo_href"]
     assert f"sel={ssn['id']}" in ssn["todo_href"]

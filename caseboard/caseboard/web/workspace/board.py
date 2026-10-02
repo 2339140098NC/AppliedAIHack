@@ -1,6 +1,7 @@
 """Assemble the workspace from the document store."""
 
 from calendar import month_abbr
+from datetime import date
 from pathlib import Path
 
 from caseboard.domain.enums import DocType, GroupStatus, Sensitivity
@@ -26,6 +27,7 @@ from caseboard.web.workspace.casefile import build_casefile
 from caseboard.web.workspace.comms import comm_meta, comm_sub
 from caseboard.web.workspace.extract_view import build_extract_detail
 from caseboard.web.workspace.posture import critical_rank
+from caseboard.web.workspace.status_bar import case_age
 from caseboard.web.workspace.query import PROVIDERS, WorkspaceQuery
 
 _MONTHS = [name.upper() for name in month_abbr if name]
@@ -98,6 +100,7 @@ class Workspace:
             "plate": self._plate(len(critical) if query.firm else 0),
             "tabs": self._tabs(len(open_items)),
             "posture": self._posture(critical) if query.firm else "",
+            "status": self._status(len(critical)) if query.firm and query.tab == "timeline" else None,
             "critical": critical if query.firm else [],
             "urgent": attention[:6],
             "urgent_count": len(attention),
@@ -151,6 +154,27 @@ class Workspace:
 
     def _posture(self, _critical: list[dict]) -> str:
         return self.summary
+
+    def _status(self, open_count: int) -> dict:
+        accident = self._value("accident.datetime") or self._value("accident.date")
+        pages = sum(item.page_count for item in self.sources)
+        return {
+            "summary": self.summary,
+            "cards": [
+                {"k": "Age of case", "v": case_age(accident, date.today()) or "—", "sub": _pretty_date(accident), "href": ""},
+                {"k": "Providers", "v": str(self._provider_count()), "sub": "", "href": self.query.url(tab="evidence", document="", page="", quote="", sel="")},
+                {"k": "Critical", "v": str(open_count), "sub": "", "href": self.query.url(tab="todo", document="", page="", quote="", sel="")},
+                {"k": "PDFs", "v": str(len(self.sources)), "sub": f"{pages} pp." if pages else "", "href": ""},
+            ],
+        }
+
+    def _provider_count(self) -> int:
+        names = {
+            segment.facility.strip().casefold()
+            for segment in self.segments
+            if segment.kind.value in _CLINICAL and segment.facility.strip()
+        }
+        return len(names)
 
     def _tabs(self, open_count: int) -> list[dict]:
         if self.query.firm:

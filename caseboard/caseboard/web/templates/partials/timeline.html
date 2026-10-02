@@ -1,5 +1,18 @@
 {% if firm %}
-{% if posture %}<p class="posture">{{ posture }}</p>{% endif %}
+{% if status %}
+<div class="status-band">
+  {% for card in status.cards[:2] %}
+  {% include "partials/stat_card.html" %}
+  {% endfor %}
+  <div class="summary-card blueprint">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <p>{{ status.summary or "No summary yet." }}</p>
+  </div>
+  {% for card in status.cards[2:] %}
+  {% include "partials/stat_card.html" %}
+  {% endfor %}
+</div>
+{% endif %}
 {% if urgent %}
 <ul class="glance">
   {% for item in urgent %}

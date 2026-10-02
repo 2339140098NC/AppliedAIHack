@@ -1,0 +1,6 @@
+<{% if card.href %}a href="{{ card.href }}"{% else %}div{% endif %} class="stat-card blueprint">
+  <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+  <span class="stat-k">{{ card.k }}</span>
+  <strong>{{ card.v }}</strong>
+  {% if card.sub %}<span class="stat-sub">{{ card.sub }}</span>{% endif %}
+</{% if card.href %}a{% else %}div{% endif %}>

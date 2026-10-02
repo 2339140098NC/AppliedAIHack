@@ -6,7 +6,7 @@
   <title>Proximate</title>
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/industry.css">
-  <link rel="stylesheet" href="/static/workspace.css?v=summary-line">
+  <link rel="stylesheet" href="/static/workspace.css?v=status-cards">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap">
   <script src="/static/htmx.min.js"></script>
 </head>
@@ -43,7 +43,9 @@
           {% endif %}
         </div>
       </div>
+      {% if not firm or query.tab != 'timeline' %}
       <div id="plate">{% include "partials/plate.html" %}</div>
+      {% endif %}
     </header>
 
     {% if not firm %}
