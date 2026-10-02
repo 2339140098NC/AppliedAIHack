@@ -394,8 +394,11 @@ class Workspace:
                 seen.add(mark)
                 sources.append({
                     "label": self._source_label(cite.document, cite.page, self.query),
+                    "name": _cite_name(cite.document),
+                    "page": cite.page,
                     "href": self.query.url(document=cite.document, page=cite.page, quote=cite.quote, sel=finding.id, tab="todo"),
                 })
+            sources.sort(key=lambda item: (item["name"].lower(), item["page"]))
             rows.append({
                 "id": finding.id,
                 "code": finding.code,
@@ -672,6 +675,12 @@ def _segment_at(segments: list[Segment], document: str, page: int) -> Segment | 
         if segment.source_file == document and segment.page_start <= page <= segment.page_end:
             return segment
     return None
+
+
+def _cite_name(document: str) -> str:
+    if document.startswith("clio:"):
+        return "Clio"
+    return Path(document).stem.split("__")[-1].replace("-", " ")[:42]
 
 
 def _fold(value: str) -> str:

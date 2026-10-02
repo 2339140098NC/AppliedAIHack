@@ -197,6 +197,9 @@
 .tone-client { --wash: #eef0e8; --ink: #3d482c; --tone: #c5cdb0; }
 .tone-court { --wash: #ececee; --ink: #3a3a40; --tone: #c2c2c8; }
 
+.cite-list > summary::-webkit-details-marker { display: none; }
+.cite-list[open] .cite-caret { transform: rotate(90deg); }
+
 #drawer.is-open { pointer-events: auto; }
 #drawer.is-open .drawer-scrim { opacity: 1; pointer-events: auto; }
 #drawer.is-open #drawer-panel { transform: translateX(0); }

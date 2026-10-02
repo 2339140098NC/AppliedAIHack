@@ -29,12 +29,35 @@
     <div class="{% if item.done %}text-muted-foreground line-through{% endif %}">
       <span class="block text-sm font-medium">{{ item.title }}</span>
       <span class="block text-sm text-muted-foreground no-underline">{{ item.detail }}</span>
-      {% if item.sources %}
-      <div class="mt-1 flex flex-wrap gap-2">
-        {% for source in item.sources %}
-        <a class="text-xs text-primary no-underline hover:underline" href="{{ source.href }}" hx-get="/partials/drawer{{ source.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ source.href }}">{{ source.label }}</a>
-        {% endfor %}
-      </div>
+      {% if item.sources|length > 1 %}
+      <details class="cite-list mt-2">
+        <summary class="flex cursor-pointer list-none items-center gap-1.5 text-xs font-medium text-muted-foreground">
+          <svg class="cite-caret size-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+          {{ item.sources|length }} references
+        </summary>
+        <div class="mt-2 overflow-hidden rounded-lg border border-border bg-card">
+          <table class="w-full border-collapse text-xs">
+            <thead>
+              <tr class="border-b border-border bg-muted text-left text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                <th class="px-3 py-1.5 font-semibold">Document</th>
+                <th class="w-16 px-3 py-1.5 font-semibold">Page</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for source in item.sources %}
+              <tr class="border-b border-border last:border-b-0 hover:bg-muted">
+                <td class="px-3 py-1.5">
+                  <a class="text-primary hover:underline" href="{{ source.href }}" hx-get="/partials/drawer{{ source.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ source.href }}">{{ source.name }}</a>
+                </td>
+                <td class="px-3 py-1.5 tabular-nums text-muted-foreground">{{ source.page }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </details>
+      {% elif item.sources %}
+      <a class="mt-1 inline-block text-xs text-primary hover:underline" href="{{ item.sources[0].href }}" hx-get="/partials/drawer{{ item.sources[0].href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ item.sources[0].href }}">{{ item.sources[0].label }}</a>
       {% endif %}
     </div>
   </div>
