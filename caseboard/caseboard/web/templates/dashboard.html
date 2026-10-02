@@ -6,7 +6,7 @@
   <title>Proximate</title>
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/industry.css">
-  <link rel="stylesheet" href="/static/workspace.css?v=status-cards">
+  <link rel="stylesheet" href="/static/workspace.css?v=glance-dates">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap">
   <script src="/static/htmx.min.js"></script>
 </head>
@@ -48,10 +48,16 @@
       {% endif %}
     </header>
 
-    {% if not firm %}
+    {% if firm %}
+    <div class="ping-row">
+      <span class="ping"><span class="pulse"></span><strong>Firm</strong> New files and comms that need attention</span>
+      <span class="ping"><span class="pulse"></span><strong>Provider</strong> When the status changes</span>
+    </div>
+    {% else %}
     <div class="provider-banner">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
       <span>Preview for <strong>{{ provider_name }}</strong>. Checked rows are what they would receive. Hold a row back to keep it with the firm.</span>
+      <span class="ping"><span class="pulse"></span>Status changes ping {{ provider_name }}</span>
     </div>
     {% endif %}
 

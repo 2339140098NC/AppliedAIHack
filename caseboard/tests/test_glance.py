@@ -32,6 +32,8 @@ def test_urgent_reading_replaces_the_label_and_reaches_the_summary(tmp_path: Pat
     assert shown["urgent"] is True
     assert shown["tone"] == "insurance"
     assert context["urgent"][0]["line"] == "No-fault benefits exhausted"
+    assert context["urgent"][0]["category"] == "Insurance"
+    assert context["urgent"][0]["when"] == "May 8, 2023"
 
 
 def _query() -> WorkspaceQuery:

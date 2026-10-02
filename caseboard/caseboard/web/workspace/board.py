@@ -268,8 +268,10 @@ class Workspace:
             document = evidence.document if evidence else ""
             rows.append({
                 "line": glance.line,
+                "category": glance.category,
                 "tone": _tone(glance.category),
                 "date": event.date or "",
+                "when": _pretty_date(event.date or "") or "No date",
                 "href": query.url(
                     document=document,
                     page=evidence.page if evidence else 1,

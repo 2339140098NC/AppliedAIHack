@@ -18,6 +18,8 @@
   {% for item in urgent %}
   <li>
     {% with tone=item.tone %}{% include "partials/mark.html" %}{% endwith %}
+    <span class="glance-cat">{{ item.category }}</span>
+    <span class="glance-date">{{ item.when }}</span>
     {% if item.href %}
     <a href="{{ item.href }}" hx-get="/partials/drawer{{ item.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ item.href }}">{{ item.line }}</a>
     {% else %}
