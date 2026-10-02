@@ -1,6 +1,6 @@
-<form class="include-form inline-flex" hx-post="/share/toggle{{ query.url()[1:] }}" hx-target="#stage" hx-swap="innerHTML" onclick="event.stopPropagation()">
+<form class="include-form relative z-10 inline-flex" hx-post="/share/toggle{{ query.url()[1:] }}" hx-target="#stage" hx-swap="innerHTML show:none" onclick="event.stopPropagation()">
   <input type="hidden" name="record_id" value="{{ item_id }}">
-  <button class="inline-flex size-5 items-center justify-center rounded border border-input bg-card {% if not held %}bg-primary text-primary-foreground border-primary{% endif %}" type="submit" aria-label="{{ 'Held back. Include it.' if held else 'Included. Hold it back.' }}" onclick="event.stopPropagation()">
+  <button class="inline-flex size-5 items-center justify-center rounded border {% if held %}border-input bg-card{% else %}border-primary bg-primary text-primary-foreground{% endif %}" type="submit" aria-label="{{ 'Held back. Include it.' if held else 'Included. Hold it back.' }}" onclick="event.stopPropagation()">
     {% if not held %}
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg>
     {% endif %}

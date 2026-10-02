@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Proximate</title>
   <link rel="icon" href="/static/favicon.svg?v=warm" type="image/svg+xml">
-  <link rel="stylesheet" href="/static/theme.css?v=align">
+  <link rel="stylesheet" href="/static/theme.css?v=checks">
   <script src="/static/htmx.min.js"></script>
 </head>
 <body data-running="{{ '1' if job.running else '0' }}" class="min-h-screen bg-background font-sans text-foreground antialiased">
@@ -125,7 +125,28 @@
     });
     const marked = location.hash ? document.getElementById(location.hash.slice(1)) : null;
     if (marked) marked.scrollIntoView({ block: "center" });
+    let stageScroll = 0;
+    document.body.addEventListener("htmx:beforeRequest", (event) => {
+      const form = event.detail.elt;
+      if (!form.classList.contains("include-form")) return;
+      stageScroll = window.scrollY;
+      document.querySelectorAll(".include-form button").forEach((button) => {
+        button.disabled = true;
+      });
+    });
+    document.body.addEventListener("htmx:afterSwap", (event) => {
+      if (event.detail.target.id !== "stage") return;
+      window.scrollTo(0, stageScroll);
+    });
+    document.body.addEventListener("htmx:afterRequest", (event) => {
+      const form = event.detail.elt;
+      if (!form.classList.contains("include-form") || event.detail.successful) return;
+      document.querySelectorAll(".include-form button").forEach((button) => {
+        button.disabled = false;
+      });
+    });
     document.body.addEventListener("click", (event) => {
+      if (event.target.closest(".include-form")) return;
       const row = event.target.closest(".event, .fact-card, .facts tr, .record-row");
       if (!row) return;
       document.querySelectorAll(".is-selected").forEach((node) => node.classList.remove("is-selected"));

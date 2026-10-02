@@ -156,7 +156,11 @@ def test_firm_timeline_has_no_packet_controls(tmp_path: Path) -> None:
     provider = Workspace(store, _query()).context()
     assert firm["share"] is None
     assert "include-form" not in _render("partials/timeline.html", firm)
+    page = _render("partials/timeline.html", provider)
     assert "Packet for" in _render("partials/stage.html", provider)
+    form_at = page.find("include-form")
+    assert form_at > 0
+    assert "hx-get" not in page[page.rfind("<div class=\"flex flex-wrap", 0, form_at):form_at]
     assert provider["share"]["included"] == 3
     assert provider["share"]["held"] == 0
 
@@ -189,5 +193,5 @@ def test_hold_back_and_send_keep_the_rest(tmp_path: Path, monkeypatch) -> None:
     assert saved.sent_ids == ["knee", "note"]
     assert "visit" not in saved.sent_ids
     firm = client.get("/")
-    assert "include-form" not in firm.text
+    assert 'class="include-form' not in firm.text
     assert "Packet for" not in firm.text

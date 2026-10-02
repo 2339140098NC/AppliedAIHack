@@ -76,8 +76,8 @@
     <span class="text-xs text-muted-foreground">{{ year.count }}</span>
   </div>
   {% for event in year.events %}
-  <div class="event grid cursor-pointer grid-cols-[3.25rem_1rem_5.25rem_minmax(0,1fr)_auto] items-start gap-x-3 border-b border-border px-1 py-3 hover:bg-muted {% if event.selected %}is-selected{% endif %} {% if event.urgent %}is-urgent{% endif %} {% if share and event.id in share.held_ids %}is-held{% endif %}"
-       {% if event.href %}hx-get="/partials/drawer{{ event.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ event.href }}"{% endif %}>
+  <div class="event grid grid-cols-[3.25rem_1rem_5.25rem_minmax(0,1fr)_auto] items-start gap-x-3 border-b border-border px-1 py-3 hover:bg-muted {% if event.selected %}is-selected{% endif %} {% if event.urgent %}is-urgent{% endif %} {% if share and event.id in share.held_ids %}is-held{% endif %}">
+    <div class="col-span-4 grid cursor-pointer grid-cols-subgrid" {% if event.href %}hx-get="/partials/drawer{{ event.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ event.href }}"{% endif %}>
     <div>
       <div class="text-[11px] uppercase tracking-wide text-muted-foreground">{{ event.month }}</div>
       <div class="text-lg font-medium leading-none">{{ event.day }}</div>
@@ -102,6 +102,7 @@
         {{ event.src }}
       </div>
       {% endif %}
+    </div>
     </div>
     <div class="flex flex-wrap items-center justify-end gap-1.5">
       {% if share %}
