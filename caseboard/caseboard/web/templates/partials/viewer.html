@@ -20,6 +20,13 @@
 {% if viewer.record %}
 <div class="page-stage">
   <div class="page-sheet record-sheet">
+    {% if viewer.meta %}
+    <div class="record-meta">
+      {% for row in viewer.meta %}
+      <div><span class="record-k">{{ row.label }}</span><span>{{ row.value }}</span></div>
+      {% endfor %}
+    </div>
+    {% endif %}
     <div class="record-body">{{ viewer.body }}</div>
   </div>
 </div>

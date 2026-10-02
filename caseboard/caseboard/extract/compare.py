@@ -21,6 +21,37 @@ _DATE_FORMATS = (
     "%b %d %Y",
 )
 _NAME_SUFFIXES = {"jr", "sr", "ii", "iii", "iv", "esq"}
+_DENIAL_BITS = (
+    "no evidence",
+    "no recent",
+    "no traumatic",
+    "no injury",
+    "no acute",
+    "denied",
+    "refused",
+    "unremarkable",
+    "within normal",
+    "normal dti",
+    "dti normal",
+    "without injury",
+    "negative for",
+)
+_LOCATION_NOISE = {
+    "street",
+    "st",
+    "at",
+    "and",
+    "the",
+    "of",
+    "southbound",
+    "ramp",
+    "avenue",
+    "ave",
+    "road",
+    "rd",
+    "drive",
+    "dr",
+}
 _ADDRESS_DROP = {
     "ny",
     "n",
@@ -43,6 +74,35 @@ _ADDRESS_DROP = {
 }
 
 
+def is_denial(value: str | None) -> bool:
+    """True when the text denies an injury instead of describing one."""
+    text = (value or "").lower()
+    return any(bit in text for bit in _DENIAL_BITS)
+
+
+def drop_combined_locations(values: list[str | None]) -> list[str | None]:
+    """Drop a location string that only repeats two other locations."""
+    indexed: list[tuple[str | None, set[str]]] = []
+    for value in values:
+        if value and str(value).strip():
+            tokens = set(_text_key(value).split()) - _LOCATION_NOISE
+            tokens = {token for token in tokens if len(token) > 2 or token.isdigit()}
+            indexed.append((value, tokens))
+    drop: set[int] = set()
+    if len(indexed) >= 3:
+        for index, (_value, tokens) in enumerate(indexed):
+            covered = [
+                other
+                for other, (_ignored, other_tokens) in enumerate(indexed)
+                if other != index and other_tokens and other_tokens <= tokens and other_tokens != tokens
+            ]
+            if len(covered) >= 2:
+                drop.add(index)
+    kept = [value for index, (value, _tokens) in enumerate(indexed) if index not in drop]
+    blanks = [value for value in values if not value or not str(value).strip()]
+    return kept + blanks
+
+
 def compare_value(key: str, value: str | None) -> str:
     """Fold case, clock time, initials, and punctuation that do not change the fact."""
     if value is None or not value.strip():
@@ -55,6 +115,8 @@ def compare_value(key: str, value: str | None) -> str:
         return calendar_day(raw) or _text_key(raw)
     if "index" in parts or "index_number" in key.lower():
         return re.sub(r"[^a-z0-9]", "", raw.lower())
+    if "location" in parts:
+        return _location_key(raw)
     if "address" in parts:
         return _address_key(raw)
     return calendar_day(raw) or _text_key(raw)
@@ -112,6 +174,17 @@ def _name_key(value: str) -> str:
     tokens = re.sub(r"[^a-z]+", " ", value.lower()).split()
     kept = [token for token in tokens if len(token) > 1 and token not in _NAME_SUFFIXES]
     return " ".join(sorted(kept))
+
+
+def _location_key(value: str) -> str:
+    tokens = set(_text_key(value).split())
+    cedar = "cedar" in tokens and "garden" in tokens
+    highway = "95" in tokens or "exit" in tokens
+    if cedar and not highway:
+        return "cedar garden"
+    if highway and not cedar:
+        return "i95 exit"
+    return _text_key(value)
 
 
 def _address_key(value: str) -> str:

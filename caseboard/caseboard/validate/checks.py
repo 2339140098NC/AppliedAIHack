@@ -8,11 +8,13 @@ from caseboard.domain.models import (
     ComparisonGroup,
     Facet,
     Finding,
+    Segment,
     SourceFile,
     TimelineEvent,
 )
 from caseboard.extract.compare import calendar_day
 from caseboard.extract.sensitivity import LEGAL_KINDS
+from caseboard.validate.critical import critical_findings
 
 _DATED_KINDS = {"accident", "surgery", "filing"}
 _ONCE = {"accident", "surgery", "filing", "demand"}
@@ -23,14 +25,15 @@ _SECRET_WORDS = ("medicaid", "social security", " hiv", "policy number", "settle
 def run_checks(
     sources: list[SourceFile],
     facets: list[Facet],
-    groups: list[ComparisonGroup],
+    _groups: list[ComparisonGroup],
     events: list[TimelineEvent],
     communications: list[Communication],
+    segments: list[Segment] | None = None,
 ) -> list[Finding]:
     pages = {source.filename: source.page_count for source in sources}
     findings: list[Finding] = []
     findings.extend(_facet_evidence(facets, pages))
-    findings.extend(_groups(groups))
+    findings.extend(critical_findings(facets, events, segments or []))
     findings.extend(_legal_labeled_clinical(facets))
     findings.extend(_redaction(facets))
     findings.extend(_sensitive_text(facets))
@@ -65,23 +68,6 @@ def _facet_evidence(facets: list[Facet], pages: dict[str, int]) -> list[Finding]
                         [item],
                     )
                 )
-    return findings
-
-
-def _groups(groups: list[ComparisonGroup]) -> list[Finding]:
-    findings = []
-    for group in groups:
-        if group.status.value == "consistent":
-            continue
-        findings.append(
-            _finding(
-                f"group_{group.status.value}",
-                Severity(group.status.value),
-                f"{group.facet_key} is {group.status.value}",
-                [entry.facet_id for entry in group.entries],
-                [cite for entry in group.entries for cite in entry.evidence],
-            )
-        )
     return findings
 
 

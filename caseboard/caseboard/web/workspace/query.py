@@ -28,6 +28,7 @@ class WorkspaceQuery:
         ev: str,
         selected: str,
         drawer: str,
+        panel: str = "",
     ) -> None:
         self.view = "provider" if view == "provider" else "firm"
         self.provider = provider if provider in PROVIDER_IDS else "montefiore"
@@ -38,6 +39,7 @@ class WorkspaceQuery:
         self.ev = "all" if ev == "all" else "compared"
         self.selected = selected
         self.drawer = "1" if drawer == "1" else ""
+        self.panel = "extract" if panel == "extract" and self.view == "firm" else ""
 
     @property
     def firm(self) -> bool:
@@ -60,6 +62,7 @@ class WorkspaceQuery:
             "ev": self.ev if self.ev != "compared" else "",
             "sel": self.selected,
             "drawer": self.drawer,
+            "panel": changes.get("panel", ""),
         }
         data.update(changes)
         view = str(data["view"])
@@ -85,6 +88,7 @@ def parse_query(request: Request) -> WorkspaceQuery:
         ev=params.get("ev") or "compared",
         selected=params.get("sel") or "",
         drawer=params.get("drawer") or "",
+        panel=params.get("panel") or "",
     )
 
 

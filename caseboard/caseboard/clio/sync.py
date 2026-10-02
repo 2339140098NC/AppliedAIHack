@@ -3,6 +3,7 @@
 import uuid
 
 from caseboard.clio.client import ClioClient
+from caseboard.clio.parties import other_party, party_name, party_names, split_stamp
 from caseboard.domain.enums import CommSource, DocType, EventKind, Sensitivity
 from caseboard.domain.models import Communication, Evidence, TimelineEvent
 from caseboard.store.documents import DocumentStore
@@ -27,37 +28,60 @@ class ClioSync:
         event_rows = []
         for item in communications:
             source = _TYPE_SOURCE.get(item.get("type") or "", CommSource.email)
+            author = party_name(item.get("user"))
+            senders = party_names(item.get("senders"))
+            receivers = party_names(item.get("receivers"))
+            day, clock = _when(item, "received_at", "created_at", "date")
+            if source == CommSource.phone:
+                sender = other_party(author, item.get("senders"), item.get("receivers"))
+                recipients: list[str] = []
+            else:
+                sender = senders[0] if senders else author
+                recipients = [name for name in receivers if name != sender]
             record, event = _pair(
                 matter_id=matter_id,
                 clio_id=str(item.get("id")),
                 source=source,
                 subject=item.get("subject") or "",
                 body=item.get("body") or "",
-                occurred_on=item.get("received_at") or item.get("date"),
+                occurred_on=day,
+                occurred_time=clock,
+                author=author,
+                sender=sender,
+                recipients=recipients,
                 kind=EventKind.call if source == CommSource.phone else EventKind.email,
             )
             comm_rows.append((record.id, record))
             event_rows.append((event.id, event))
         for item in notes:
+            day, clock = _when(item, "date", "created_at")
             record, event = _pair(
                 matter_id=matter_id,
                 clio_id=str(item.get("id")),
                 source=CommSource.note,
                 subject=item.get("subject") or "",
                 body=item.get("detail") or "",
-                occurred_on=item.get("date"),
+                occurred_on=day,
+                occurred_time=clock,
+                author=party_name(item.get("author")),
+                sender=party_name(item.get("contact")),
                 kind=EventKind.note,
             )
             comm_rows.append((record.id, record))
             event_rows.append((event.id, event))
         for item in messages:
+            day, clock = split_stamp(item.get("created_at"))
+            sender = party_name(item.get("sender"))
             record, event = _pair(
                 matter_id=matter_id,
                 clio_id=str(item.get("id")),
                 source=CommSource.message,
                 subject="",
                 body=item.get("body") or "",
-                occurred_on=item.get("created_at"),
+                occurred_on=day,
+                occurred_time=clock,
+                author=sender,
+                sender=sender,
                 kind=EventKind.message,
             )
             comm_rows.append((record.id, record))
@@ -65,6 +89,17 @@ class ClioSync:
         self._store.put_many(DocType.communication, comm_rows)
         self._store.put_many(DocType.timeline_event, event_rows)
         return len(comm_rows)
+
+
+def _when(item: dict, *keys: str) -> tuple[str | None, str]:
+    """Prefer a stamp that includes a clock, and keep the calendar day either way."""
+    day = None
+    clock = ""
+    for key in keys:
+        next_day, next_clock = split_stamp(item.get(key))
+        day = day or next_day
+        clock = clock or next_clock
+    return day, clock
 
 
 def _pair(
@@ -76,9 +111,12 @@ def _pair(
     body: str,
     occurred_on: str | None,
     kind: EventKind,
+    occurred_time: str = "",
+    author: str = "",
+    sender: str = "",
+    recipients: list[str] | None = None,
 ) -> tuple[Communication, TimelineEvent]:
     comm_id = str(uuid.uuid4())
-    when = _date_only(occurred_on)
     label = subject.strip() or body.strip()[:80] or source.value
     communication = Communication(
         id=comm_id,
@@ -86,13 +124,18 @@ def _pair(
         source=source,
         subject=subject,
         body=body,
-        occurred_on=when,
+        occurred_on=occurred_on,
+        occurred_time=occurred_time,
+        author=author,
+        sender=sender,
+        recipients=recipients or [],
         sensitivity=Sensitivity.firm_only,
         matter_id=matter_id,
     )
     event = TimelineEvent(
         id=str(uuid.uuid4()),
-        date=when,
+        date=occurred_on,
+        time=occurred_time,
         label=label,
         kind=kind,
         sensitivity=Sensitivity.firm_only,
@@ -101,9 +144,3 @@ def _pair(
         origin="clio",
     )
     return communication, event
-
-
-def _date_only(value: str | None) -> str | None:
-    if not value:
-        return None
-    return str(value)[:10]

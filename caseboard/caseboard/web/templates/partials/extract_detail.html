@@ -1,0 +1,43 @@
+<div class="extract-detail">
+  {% if extract_detail.empty %}
+  <p class="empty">This PDF has not been extracted.</p>
+  <form hx-post="/actions/reextract" hx-target="#status" hx-swap="innerHTML">
+    <input type="hidden" name="filename" value="{{ extract_detail.filename }}">
+    <button class="btn btn-secondary" type="submit" {% if job.running %}disabled{% endif %}>Re-extract</button>
+  </form>
+  {% else %}
+  {% if extract_detail.segments %}
+  <div class="section-head"><span class="section-title">Segments</span></div>
+  {% for item in extract_detail.segments %}
+  <div class="extract-fact">
+    <div class="event-label">{{ item.kind }}</div>
+    <div class="event-sub">{{ item.pages }}{% if item.who %} · {{ item.who }}{% endif %}</div>
+  </div>
+  {% endfor %}
+  {% endif %}
+  {% if extract_detail.facts %}
+  <div class="section-head"><span class="section-title">Facts</span></div>
+  {% for item in extract_detail.facts %}
+  <div class="extract-fact">
+    <div class="event-label">{{ item.title }}</div>
+    <div class="value {% if item.blank %}blank{% endif %}">{{ item.value }}</div>
+    <div class="extract-meta">
+      {% if item.redacted %}<span class="tag tag-outline">Redacted</span>{% endif %}
+      {% if item.firm_only %}<span class="tag tag-neutral">Firm only</span>{% endif %}
+      <a class="src-link" href="{{ item.href }}" hx-get="/partials/drawer{{ item.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ item.href }}">{{ item.label }}</a>
+    </div>
+  </div>
+  {% endfor %}
+  {% endif %}
+  {% if extract_detail.events %}
+  <div class="section-head"><span class="section-title">Timeline</span></div>
+  {% for item in extract_detail.events %}
+  <div class="extract-fact">
+    <div class="event-kind">{{ item.kind }} · {{ item.when }}</div>
+    <div class="event-label">{{ item.label }}</div>
+    <a class="src-link" href="{{ item.href }}" hx-get="/partials/drawer{{ item.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ item.href }}">{{ item.page }}</a>
+  </div>
+  {% endfor %}
+  {% endif %}
+  {% endif %}
+</div>

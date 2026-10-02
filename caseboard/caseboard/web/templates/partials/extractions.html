@@ -13,6 +13,7 @@
       </div>
     </div>
     <div class="extract-actions">
+      <a class="btn btn-secondary" href="{{ item.extract_href }}" hx-get="/partials/drawer{{ item.extract_href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ item.extract_href }}">Extracted</a>
       <a class="btn btn-secondary" href="{{ item.href }}" hx-get="/partials/drawer{{ item.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ item.href }}">Open</a>
       <form hx-post="/actions/reextract" hx-target="#status" hx-swap="innerHTML">
         <input type="hidden" name="filename" value="{{ item.filename }}">

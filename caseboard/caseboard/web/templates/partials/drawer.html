@@ -1,15 +1,25 @@
+{% if extract_detail %}
+<div class="drawer-bar">
+  <a class="btn btn-ghost" href="{{ query.url(document='', page='', quote='', drawer='1', panel='') }}" hx-get="/partials/drawer{{ query.url(document='', page='', quote='', drawer='1', panel='')[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ query.url(document='', page='', quote='', drawer='1', panel='') }}">Extractions</a>
+  <div class="viewer-title">{{ extract_detail.title }}</div>
+  <a class="btn btn-ghost" href="{{ extract_detail.page_href }}" hx-get="/partials/drawer{{ extract_detail.page_href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ extract_detail.page_href }}">Open page</a>
+  <a class="btn btn-ghost" href="{{ query.url(document='', page='', quote='', sel='', drawer='', panel='') }}" data-close-drawer>Close</a>
+</div>
+{% include "partials/extract_detail.html" %}
+{% else %}
 <div class="drawer-bar">
   {% if firm and viewer.document %}
-  <a class="btn btn-ghost" href="{{ query.url(document='', page='', quote='', drawer='1') }}" hx-get="/partials/drawer{{ query.url(document='', page='', quote='', drawer='1')[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ query.url(document='', page='', quote='', drawer='1') }}">Extractions</a>
+  <a class="btn btn-ghost" href="{{ query.url(document='', page='', quote='', drawer='1', panel='') }}" hx-get="/partials/drawer{{ query.url(document='', page='', quote='', drawer='1', panel='')[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ query.url(document='', page='', quote='', drawer='1', panel='') }}">Extractions</a>
   {% elif firm %}
   <div class="viewer-title">Extractions</div>
   {% else %}
   <div class="viewer-title">Record</div>
   {% endif %}
-  <a class="btn btn-ghost" href="{{ query.url(document='', page='', quote='', sel='', drawer='') }}" data-close-drawer>Close</a>
+  <a class="btn btn-ghost" href="{{ query.url(document='', page='', quote='', sel='', drawer='', panel='') }}" data-close-drawer>Close</a>
 </div>
 {% if firm and not viewer.document %}
 {% include "partials/extractions.html" %}
 {% else %}
 {% include "partials/viewer.html" %}
+{% endif %}
 {% endif %}

@@ -24,6 +24,12 @@ def test_sensitive_keys_stay_with_the_firm() -> None:
     assert sensitivity == Sensitivity.firm_only
     sensitivity, _reason = facet_sensitivity(SegmentKind.clinical_note, "injury.right_knee")
     assert sensitivity == Sensitivity.provider_visible
+    sensitivity, _reason = facet_sensitivity(SegmentKind.clinical_note, "patient.ssn")
+    assert sensitivity == Sensitivity.firm_only
+    sensitivity, _reason = facet_sensitivity(SegmentKind.clinical_note, "hipaa.special_categories")
+    assert sensitivity == Sensitivity.firm_only
+    sensitivity, _reason = facet_sensitivity(SegmentKind.clinical_note, "expert.conclusion")
+    assert sensitivity == Sensitivity.firm_only
 
 
 def test_groups_mark_conflict_and_incomplete() -> None:
@@ -55,6 +61,29 @@ def test_groups_mark_conflict_and_incomplete() -> None:
         ],
         key="patient.address",
     ) == GroupStatus.conflict
+    assert status_for(
+        ["tears of the medial and lateral menisci", "medial meniscus tear"],
+        key="injury.right_knee",
+    ) == GroupStatus.consistent
+    assert status_for(
+        ["meniscus tear", "no recent traumatic injury"],
+        key="injury.right_knee",
+    ) == GroupStatus.conflict
+    assert status_for(
+        [
+            "Cedar Street at Garden Street",
+            "I-95 Exit 16",
+            "I 95 Southbound Exit 16 ramp / Cedar St & Garden St",
+        ],
+        key="accident.location",
+    ) == GroupStatus.conflict
+    assert status_for(
+        [
+            "Cedar Street at its intersection with Garden Street, New Rochelle, New York",
+            "Cedar Street at or near its intersection with Garden Street, City of New Rochelle",
+        ],
+        key="accident.location",
+    ) == GroupStatus.consistent
 
 
 def test_runner_writes_findings(tmp_path: Path) -> None:
@@ -140,7 +169,10 @@ def test_runner_writes_findings(tmp_path: Path) -> None:
     assert count == len(findings)
     assert "clinical_label_on_legal_source" in codes
     assert "redaction_ignored" in codes
-    assert "group_conflict" in codes
+    assert "group_conflict" not in codes
+    assert "critical_defense" in codes
+    assert "critical_ssn" in codes
+    assert all("123456789" not in row["message"] for row in findings)
     assert "clio_not_firm_only" in codes
     assert "timeline_missing_date" in codes
     assert any(row["severity"] == Severity.sensitive.value for row in findings)

@@ -19,9 +19,21 @@ Rules:
 - Never complete a Social Security number, driver license number, or covered digits.
 - Reuse these facet keys when they apply: patient.name, patient.date_of_birth,
   patient.address, patient.ssn, patient.license_number, accident.datetime,
-  accident.location, accident.vehicles, case.index_number, injury.<body_part>,
-  treatment.<procedure>, damages.amount, benefits.medicaid, benefits.nofault,
-  insurance.policy_number, employment.employee_number.
+  accident.location, accident.vehicles, accident.injury_at_scene,
+  case.index_number, case.prior_index_number, injury.<body_part>,
+  injury.imaging_provider, treatment.<procedure>, damages.amount,
+  benefits.medicaid, benefits.nofault, insurance.policy_number,
+  employment.employee_number, expert.conclusion, expert.report_date,
+  hipaa.redisclosure, hipaa.special_categories, hipaa.providers,
+  missing_document, draft.complaint, draft.pronoun.
+- One injury.<body_part> value per document. Do not add a second facet that only rewords the same injury.
+- Repeat expert.report_date when the same report states two dates. expert.conclusion is the examiner's opinion, including a denial of traumatic injury.
+- accident.injury_at_scene is what the page says about injury or refused care at the scene.
+- case.prior_index_number is an earlier index, including one dismissed and renewed under CPLR 205.
+- patient.ssn copies only characters that are visible. Set redacted to true. Never fill covered digits.
+- missing_document names a record this PDF mentions but is not, such as a 50-h transcript, police report, photos, retainer, insurance coverage, or lien ledger.
+- draft.complaint is a pleading or tracked changes inside the PDF. draft.pronoun is boilerplate that calls the plaintiff "her" or "she".
+- hipaa.special_categories includes HIV, mental health, and alcohol or drug treatment when those boxes are initialed.
 - Omit a facet the document does not state. Do not invent facts.
 - Prefer a checkable set of facts over a sentence-by-sentence dump.
 - segment kind must be one of: clinical_note, imaging_report, operative_report, bill,

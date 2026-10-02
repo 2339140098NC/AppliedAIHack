@@ -16,6 +16,9 @@ from caseboard.domain.models import (
 from caseboard.extract.compare import merge_same
 from caseboard.extract.stamp import extract_stamp
 from caseboard.store.documents import DocumentStore
+from caseboard.web.workspace.comms import comm_meta, comm_sub
+from caseboard.web.workspace.extract_view import build_extract_detail
+from caseboard.web.workspace.posture import critical_rank, posture_sentence
 from caseboard.web.workspace.query import PROVIDERS, WorkspaceQuery
 
 _MONTHS = [name.upper() for name in month_abbr if name]
@@ -43,6 +46,7 @@ class Workspace:
             item.clio_id: item
             for item in (Communication.model_validate(row) for row in store.list_type(DocType.communication))
         }
+        self.has_portrait = bool(store.list_type(DocType.portrait))
         self._conflict_pages = {
             (cite.document, cite.page)
             for group in self.groups
@@ -55,13 +59,18 @@ class Workspace:
         query = self._with_viewer()
         findings = self._findings()
         open_items = [item for item in findings if not item["done"]]
+        critical = [item for item in open_items if str(item["code"]).startswith("critical_")]
+        critical.sort(key=lambda item: critical_rank(item["code"]))
         return {
             "query": query,
             "firm": query.firm,
             "provider_name": query.provider_name(),
             "providers": [(key, name) for key, name, _tokens in PROVIDERS],
-            "plate": self._plate(len(open_items)),
+            "plate": self._plate(len(critical) if query.firm else 0),
             "tabs": self._tabs(len(open_items)),
+            "posture": self._posture(critical) if query.firm else "",
+            "critical": critical if query.firm else [],
+            "extract_detail": build_extract_detail(self.segments, self.facets, self.events, query),
             "years": self._years(query),
             "groups": self._groups(query),
             "facts": self._facts(query),
@@ -72,6 +81,7 @@ class Workspace:
             "records": self._records(query),
             "viewer": self._viewer(query),
             "extractions": self._extractions(query),
+            "portrait": query.firm and self.has_portrait,
             "drawer_open": bool(query.drawer or query.document),
             "ev_compared": query.ev != "all",
         }
@@ -97,7 +107,7 @@ class Workspace:
             {"k": "Files", "v": file_label},
         ]
         if self.query.firm:
-            cells.append({"k": "Open to-dos", "v": str(open_count), "live": open_count > 0})
+            cells.append({"k": "Critical", "v": str(open_count), "live": open_count > 0})
         else:
             owned = self._owned_segments(self.query.provider)
             cells = [
@@ -105,6 +115,15 @@ class Workspace:
                 {"k": "Records", "v": f"{len(owned)} document{'s' if len(owned) != 1 else ''}"},
             ]
         return cells
+
+    def _posture(self, critical: list[dict]) -> str:
+        return posture_sentence(
+            name=self._value("patient.name"),
+            index=self._value("case.index_number"),
+            prior=self._value("case.prior_index_number"),
+            accident=_pretty_date(self._value("accident.datetime") or self._value("accident.date")),
+            open_codes=[item["code"] for item in critical],
+        )
 
     def _tabs(self, open_count: int) -> list[dict]:
         if self.query.firm:
@@ -153,6 +172,11 @@ class Workspace:
         month, day = _month_day(event.date)
         who = _provider_name(_blob(event.label, event.sensitivity_reason, document, quote))
         kind = _KIND.get(event.kind.value, event.kind.value.replace("_", " ").title())
+        sub = event.time or ""
+        if document.startswith("clio:"):
+            record = self._comms.get(document.removeprefix("clio:"))
+            if record:
+                sub = comm_sub(record) or sub
         if query.firm and who:
             kind = f"{kind} · {who}"
         return {
@@ -161,7 +185,7 @@ class Workspace:
             "day": day,
             "kind": kind,
             "label": event.label,
-            "sub": event.time or "",
+            "sub": sub,
             "src": self._source_label(document, page, query),
             "href": query.url(document=document, page=page, quote=quote, sel=event.id) if document else "",
             "selected": query.selected == event.id,
@@ -266,6 +290,7 @@ class Workspace:
                 })
             rows.append({
                 "id": finding.id,
+                "code": finding.code,
                 "severity": finding.severity.value,
                 "title": title,
                 "detail": detail or finding.code,
@@ -320,7 +345,8 @@ class Workspace:
                 "when": _extracted_when(source.extracted_at),
                 "state": state,
                 "label": label,
-                "href": query.url(document=source.filename, page=1, quote="", drawer="1"),
+                "href": query.url(document=source.filename, page=1, quote="", drawer="1", panel=""),
+                "extract_href": query.url(document=source.filename, page="", quote="", drawer="1", panel="extract"),
             })
         return rows
 
@@ -397,13 +423,17 @@ class Workspace:
             "footer": str(page - lo + 1),
             "record": False,
             "body": "",
+            "meta": [],
         }
 
     def _communication_viewer(self, query: WorkspaceQuery, document: str) -> dict:
         record = self._comms.get(document.removeprefix("clio:"))
         kind = _KIND.get(record.source.value, "Record") if record else "Record"
         when = _pretty_date(record.occurred_on or "") if record and record.occurred_on else ""
+        if record and record.occurred_time:
+            when = " · ".join(part for part in (when, record.occurred_time) if part)
         title = (record.subject.strip() if record and record.subject.strip() else kind) if record else "Record not found"
+        meta = comm_meta(record) if record else []
         if record and record.body.strip():
             body = record.body
         elif record:
@@ -427,6 +457,7 @@ class Workspace:
             "footer": "",
             "record": True,
             "body": body,
+            "meta": meta,
         }
 
     def _quotes(self, document: str, page: int, query: WorkspaceQuery) -> list[dict]:

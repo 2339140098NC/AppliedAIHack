@@ -11,10 +11,10 @@ from caseboard.clio.tokens import TokenStore
 from caseboard.config import Settings
 from caseboard.errors import CaseboardError
 
-FIELDS_COMM = "id,subject,body,type,date,received_at"
-FIELDS_NOTE = "id,subject,detail,date,type"
+FIELDS_COMM = "id,subject,body,type,date,received_at,created_at,user{id,name},senders{id,name,type},receivers{id,name,type}"
+FIELDS_NOTE = "id,subject,detail,date,created_at,type,author{id,name},contact{id,name}"
 FIELDS_CONVO = "id,subject"
-FIELDS_MESSAGE = "id,body,created_at"
+FIELDS_MESSAGE = "id,body,created_at,sender{id,name}"
 FIELDS_DOCUMENT = "id,name,latest_document_version{id,filename,content_type,fully_uploaded}"
 
 

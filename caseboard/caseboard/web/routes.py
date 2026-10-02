@@ -1,10 +1,11 @@
 """Dashboard pages and the three live actions."""
 
+import base64
 import html
 import threading
 from pathlib import Path
 
-from fastapi import APIRouter, Form, Request
+from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
@@ -70,6 +71,16 @@ def page_image(request: Request, document: str, page: int = 1) -> Response:
     )
     png, _scanned, _count = render_page(source, page)
     return Response(content=png, media_type="image/png")
+
+
+@router.get("/portrait")
+def client_portrait(request: Request) -> Response:
+    """The stored headshot. Firm pages are the only ones that show it."""
+    for row in request.app.state.store.list_type(DocType.portrait):
+        encoded = str(row.get("png_base64") or "")
+        if encoded:
+            return Response(content=base64.b64decode(encoded), media_type="image/png")
+    raise HTTPException(status_code=404)
 
 
 @router.post("/findings/{finding_id}/resolved", response_class=HTMLResponse)

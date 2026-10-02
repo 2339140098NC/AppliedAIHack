@@ -6,6 +6,7 @@ from caseboard.domain.enums import DocType
 from caseboard.domain.models import SourceFile
 from caseboard.extract.corpus import CorpusExtractor, high_resolution
 from caseboard.extract.gemini import GeminiExtractor
+from caseboard.extract.portrait import is_photo_id, save_portrait
 from caseboard.store.documents import DocumentStore
 
 
@@ -83,6 +84,9 @@ class PdfChanges:
                 self._corpus.remember(
                     item.document_id, item.version_id, item.filename, extracted
                 )
+                if is_photo_id(item.filename):
+                    save_portrait(self._store, self._client.pdf_bytes(item.document_id), item.filename)
+                    on_progress("Saved the client photo")
             except Exception as exc:
                 problems.append(f"{item.filename}: {exc}")
         if changed or removed:

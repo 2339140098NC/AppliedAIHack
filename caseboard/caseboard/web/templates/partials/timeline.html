@@ -1,3 +1,32 @@
+{% if firm %}
+<div class="case-status">
+  <div class="pane-title">Case status</div>
+  <p class="posture">{{ posture }}</p>
+</div>
+{% if critical %}
+<div class="critical-list">
+  <div class="section-head">
+    <span class="section-title">Critical</span>
+    <span class="pane-sub">The disagreements and gaps that change what you can share.</span>
+  </div>
+  {% for item in critical %}
+  <div class="todo">
+    <div class="todo-text">
+      <span class="todo-title">{{ item.title }}</span>
+      <span class="todo-detail">{{ item.detail }}</span>
+      {% if item.sources %}
+      <div class="src-row">
+        {% for source in item.sources %}
+        <a class="src-link" href="{{ source.href }}" hx-get="/partials/drawer{{ source.href[1:] }}" hx-target="#drawer-panel" hx-swap="innerHTML" hx-push-url="{{ source.href }}">{{ source.label }}</a>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endif %}
 {% if not years %}
 <p class="empty">Nothing on the timeline yet.</p>
 {% else %}

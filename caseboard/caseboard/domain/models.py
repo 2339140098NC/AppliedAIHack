@@ -148,8 +148,30 @@ class Communication(BaseModel):
     subject: str = ""
     body: str = ""
     occurred_on: str | None = None
+    occurred_time: str = ""
+    author: str = ""
+    sender: str = ""
+    recipients: list[str] = Field(default_factory=list)
     sensitivity: Sensitivity = Sensitivity.firm_only
     matter_id: str = ""
+
+
+class ProviderShare(BaseModel):
+    """What a firm user has chosen to send to one provider."""
+
+    id: str
+    provider: str
+    excluded: list[str] = Field(default_factory=list)
+    sent_at: str = ""
+    sent_ids: list[str] = Field(default_factory=list)
+
+
+class ClientPortrait(BaseModel):
+    """The client's headshot. The rest of the photo ID stays out of this record."""
+
+    id: str
+    source_file: str
+    png_base64: str
 
 
 class Finding(BaseModel):

@@ -5,6 +5,7 @@ from caseboard.domain.models import (
     Communication,
     ComparisonGroup,
     Facet,
+    Segment,
     SourceFile,
     TimelineEvent,
 )
@@ -30,7 +31,8 @@ class ValidationRunner:
             Communication.model_validate(row)
             for row in self._store.list_type(DocType.communication)
         ]
-        findings = run_checks(sources, facets, groups, events, communications)
+        segments = [Segment.model_validate(row) for row in self._store.list_type(DocType.segment)]
+        findings = run_checks(sources, facets, groups, events, communications, segments)
         resolved = {
             row["code"]
             for row in self._store.list_type(DocType.validation)

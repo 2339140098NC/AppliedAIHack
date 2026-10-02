@@ -47,6 +47,15 @@ _SENSITIVE_BITS = (
     "policy",
     "employee_number",
     "settlement",
+    "hipaa",
+    "special_categor",
+    "redisclosure",
+    "expert",
+    "draft",
+    "missing_document",
+    "injury_at_scene",
+    "prior_index",
+    "index_number",
 )
 
 _LEGAL_NAME_BITS = (

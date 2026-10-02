@@ -57,6 +57,8 @@ class DocType(str, Enum):
     timeline_event = "timeline_event"
     communication = "communication"
     validation = "validation"
+    portrait = "portrait"
+    share = "share"
 
 
 class Severity(str, Enum):
